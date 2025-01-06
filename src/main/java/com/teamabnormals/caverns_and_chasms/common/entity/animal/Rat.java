@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.teamabnormals.caverns_and_chasms.common.entity.ai.goal.RatDevourRottenFleshGoal;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
 import com.teamabnormals.caverns_and_chasms.core.other.tags.CCItemTags;
-import com.teamabnormals.caverns_and_chasms.core.registry.CCEntityTypes;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCItems;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.nbt.CompoundTag;
@@ -403,11 +402,6 @@ public class Rat extends ShoulderRidingEntity {
 			itemEntity.discard();
 			this.eatTicks = 0;
 		}
-	}
-
-	@Override
-	public boolean causeFallDamage(float distance, float damageMultiplier, DamageSource source) {
-		return false;
 	}
 
 	@Override

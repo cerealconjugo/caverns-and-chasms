@@ -7,6 +7,7 @@
   "mixins": [
     "AbstractFurnaceBlockEntityMixin",
     "AbstractMinecartMixin",
+    "ArmorTrimMixin",
     "AxeItemMixin",
     "BaseFireBlockMixin",
     "BlockBehaviourMixin",
@@ -25,13 +26,17 @@
     "LightningRodBlockMixin",
     "MobMixin",
     "PlayerMixin",
+    "PowderSnowBlockMixin",
     "ServerLevelMixin",
+    "SmithingTemplateItemMixin",
+    "SmithingTrimRecipeMixin",
     "ThrownPotionMixin",
     "WitherSkeletonMixin"
   ],
   "client": [
     "client.EntityRenderDispatcherMixin",
-    "client.HumanoidArmorLayerMixin"
+    "client.HumanoidArmorLayerMixin",
+    "client.LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

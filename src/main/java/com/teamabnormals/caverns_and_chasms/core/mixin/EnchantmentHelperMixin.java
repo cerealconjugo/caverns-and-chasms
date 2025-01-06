@@ -3,7 +3,6 @@ package com.teamabnormals.caverns_and_chasms.core.mixin;
 import com.teamabnormals.caverns_and_chasms.common.item.silver.SilverItem;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCAttributes;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCItems;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -41,7 +40,7 @@ public abstract class EnchantmentHelperMixin {
 			Collection<AttributeModifier> slownessModifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(CCAttributes.SLOWNESS_INFLICTION.get());
 			if (!slownessModifiers.isEmpty()) {
 				int slownessLevel = (int) slownessModifiers.stream().mapToDouble(AttributeModifier::getAmount).sum();
-				livingTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, slownessLevel));
+				livingTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 120, slownessLevel));
 			}
 		}
 	}

@@ -64,6 +64,8 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 	private static final ResourceLocation TETHER_POTION_LOCATION = new ResourceLocation(CavernsAndChasms.MOD_ID, "textures/models/armor/tether_potion.png");
 	@Unique
 	private static final ResourceLocation TETHER_POTION_OVERLAY_LOCATION = new ResourceLocation(CavernsAndChasms.MOD_ID, "textures/models/armor/tether_potion_overlay.png");
+	@Unique
+	private static final ResourceLocation SUBTLE_TETHER_POTION_OVERLAY_LOCATION = new ResourceLocation(CavernsAndChasms.MOD_ID, "textures/models/armor/tether_potion_overlay_subtle.png");
 
 	public HumanoidArmorLayerMixin(RenderLayerParent<T, M> entityRenderer) {
 		super(entityRenderer);
@@ -71,7 +73,7 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 
 	@Inject(at = @At("TAIL"), method = "render")
 	public void render(PoseStack stack, MultiBufferSource source, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-		this.renderWornTetherPotion(stack, source, packedLight, entity);
+		this.renderWornPotion(stack, source, packedLight, entity);
 	}
 
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/HumanoidArmorLayer;setPartVisibility(Lnet/minecraft/client/model/HumanoidModel;Lnet/minecraft/world/entity/EquipmentSlot;)V", shift = At.Shift.BEFORE), method = "renderArmorPiece")
@@ -116,7 +118,7 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 	}
 
 	@Unique
-	private void renderWornTetherPotion(PoseStack poseStack, MultiBufferSource source, int packedLight, T entity) {
+	private void renderWornPotion(PoseStack poseStack, MultiBufferSource source, int packedLight, T entity) {
 		ItemStack stack = entity.getItemBySlot(EquipmentSlot.HEAD);
 		if (stack.getItem() instanceof TetherPotionItem) {
 			this.getParentModel().copyPropertiesTo(this.outerModel);
@@ -132,7 +134,7 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 			float b = (float) (i & 255) / 255.0F;
 
 			this.renderModel(poseStack, source, packedLight, null, this.outerModel, flag, r, g, b, TETHER_POTION_LOCATION);
-			this.renderModel(poseStack, source, packedLight, null, this.outerModel, flag, 1.0F, 1.0F, 1.0F, TETHER_POTION_OVERLAY_LOCATION);
+			this.renderModel(poseStack, source, packedLight, null, this.outerModel, flag, 1.0F, 1.0F, 1.0F, stack.getOrCreateTag().getBoolean("Subtle") ? SUBTLE_TETHER_POTION_OVERLAY_LOCATION : TETHER_POTION_OVERLAY_LOCATION);
 		}
 	}
 

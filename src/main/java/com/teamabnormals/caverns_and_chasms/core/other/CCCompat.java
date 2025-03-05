@@ -2,15 +2,15 @@ package com.teamabnormals.caverns_and_chasms.core.other;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import com.teamabnormals.blueprint.core.util.DataUtil;
 import com.teamabnormals.caverns_and_chasms.common.dispenser.*;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
-import com.teamabnormals.caverns_and_chasms.core.registry.CCBlocks;
-import com.teamabnormals.caverns_and_chasms.core.registry.CCEntityTypes;
-import com.teamabnormals.caverns_and_chasms.core.registry.CCItems;
-import com.teamabnormals.caverns_and_chasms.core.registry.CCSoundEvents;
+import com.teamabnormals.caverns_and_chasms.core.registry.*;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.sensing.VillagerHostilesSensor;
 import net.minecraft.world.item.FireworkRocketItem;
 import net.minecraft.world.item.HoneycombItem;
 import net.minecraft.world.item.Items;
@@ -25,6 +25,7 @@ import java.util.List;
 public class CCCompat {
 
 	public static void registerCompat() {
+		registerCompostables();
 		registerFlammables();
 		registerDispenserBehaviors();
 		registerWaxables();
@@ -32,8 +33,22 @@ public class CCCompat {
 		registerParrotImitations();
 		registerVibrationFrequencies();
 		changeLocalization();
+		makeVillagersScaredOfRats();
+		CCDecoratedPotPatterns.registerDecoratedPotPatterns();
 		CCCauldronInteractions.registerCauldronInteractions();
 		CCSoundEvents.registerNoteBlocks();
+	}
+
+	public static void registerCompostables() {
+		DataUtil.registerCompostable(CCBlocks.FALSE_HOPE.get(), 0.65F);
+
+		DataUtil.registerCompostable(CCBlocks.MOSCHATEL.get(), 0.65F);
+		DataUtil.registerCompostable(CCBlocks.CAVE_GROWTHS.get(), 0.30F);
+		DataUtil.registerCompostable(CCBlocks.LURID_CAVE_GROWTHS.get(), 0.30F);
+		DataUtil.registerCompostable(CCBlocks.WISPY_CAVE_GROWTHS.get(), 0.30F);
+		DataUtil.registerCompostable(CCBlocks.GRAINY_CAVE_GROWTHS.get(), 0.30F);
+		DataUtil.registerCompostable(CCBlocks.WEIRD_CAVE_GROWTHS.get(), 0.30F);
+		DataUtil.registerCompostable(CCBlocks.ZESTY_CAVE_GROWTHS.get(), 0.30F);
 	}
 
 	private static void registerFlammables() {
@@ -49,6 +64,17 @@ public class CCCompat {
 		DataUtil.registerFlammable(CCBlocks.AZALEA_BOARDS.get(), 5, 20);
 		DataUtil.registerFlammable(CCBlocks.AZALEA_BOOKSHELF.get(), 30, 20);
 		DataUtil.registerFlammable(CCBlocks.AZALEA_BEEHIVE.get(), 5, 20);
+
+		DataUtil.registerFlammable(CCBlocks.FALSE_HOPE.get(), 60, 100);
+
+		DataUtil.registerFlammable(CCBlocks.MOSCHATEL.get(), 60, 100);
+		DataUtil.registerFlammable(CCBlocks.CAVE_GROWTHS.get(), 60, 100);
+		DataUtil.registerFlammable(CCBlocks.LURID_CAVE_GROWTHS.get(), 60, 100);
+		DataUtil.registerFlammable(CCBlocks.WISPY_CAVE_GROWTHS.get(), 60, 100);
+		DataUtil.registerFlammable(CCBlocks.GRAINY_CAVE_GROWTHS.get(), 60, 100);
+		DataUtil.registerFlammable(CCBlocks.WEIRD_CAVE_GROWTHS.get(), 60, 100);
+		DataUtil.registerFlammable(CCBlocks.ZESTY_CAVE_GROWTHS.get(), 60, 100);
+
 		DataUtil.registerFlammable(CCBlocks.TMT.get(), 15, 100);
 	}
 
@@ -74,16 +100,19 @@ public class CCCompat {
 		DispenserBlock.registerBehavior(CCItems.PEEPER_HEAD.get(), armorDispenseBehavior);
 		DispenserBlock.registerBehavior(CCItems.MIME_HEAD.get(), armorDispenseBehavior);
 		DispenserBlock.registerBehavior(CCItems.TETHER_POTION.get(), armorDispenseBehavior);
+		DispenserBlock.registerBehavior(CCItems.IMPACT_POTION.get(), armorDispenseBehavior);
+		DispenserBlock.registerBehavior(CCItems.TRAIL_POTION.get(), armorDispenseBehavior);
 	}
 
 	private static void changeLocalization() {
 		DataUtil.changeItemLocalization(Items.NETHERITE_SCRAP, CavernsAndChasms.MOD_ID, "ancient_scrap");
+		DataUtil.changeBlockLocalization(Blocks.RAIL, CavernsAndChasms.MOD_ID, "iron_rail");
 		DataUtil.changeBlockLocalization(Blocks.AMETHYST_BLOCK, CavernsAndChasms.MOD_ID, "amethyst");
 		DataUtil.changeBlockLocalization(CCBlocks.AMETHYST_BLOCK.get(), "minecraft", "amethyst_block");
 		DataUtil.changeBlockLocalization(Blocks.CHISELED_DEEPSLATE, CavernsAndChasms.MOD_ID, "chiseled_deepslate_bricks");
 	}
 
-	private static void registerWaxables() {
+	public static void registerWaxables() {
 		ImmutableBiMap.Builder<Block, Block> builder = ImmutableBiMap.builder();
 		HoneycombItem.WAXABLES.get().forEach(builder::put);
 		builder.put(CCBlocks.COPPER_BARS.get(), CCBlocks.WAXED_COPPER_BARS.get());
@@ -106,6 +135,30 @@ public class CCCompat {
 		builder.put(CCBlocks.EXPOSED_FLOODLIGHT.get(), CCBlocks.WAXED_EXPOSED_FLOODLIGHT.get());
 		builder.put(CCBlocks.WEATHERED_FLOODLIGHT.get(), CCBlocks.WAXED_WEATHERED_FLOODLIGHT.get());
 		builder.put(CCBlocks.OXIDIZED_FLOODLIGHT.get(), CCBlocks.WAXED_OXIDIZED_FLOODLIGHT.get());
+		builder.put(CCBlocks.COPPER_RAIL.get(), CCBlocks.WAXED_COPPER_RAIL.get());
+		builder.put(CCBlocks.EXPOSED_COPPER_RAIL.get(), CCBlocks.WAXED_EXPOSED_COPPER_RAIL.get());
+		builder.put(CCBlocks.WEATHERED_COPPER_RAIL.get(), CCBlocks.WAXED_WEATHERED_COPPER_RAIL.get());
+		builder.put(CCBlocks.OXIDIZED_COPPER_RAIL.get(), CCBlocks.WAXED_OXIDIZED_COPPER_RAIL.get());
+		builder.put(CCBlocks.COPPER_BRICKS.get(), CCBlocks.WAXED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.EXPOSED_COPPER_BRICKS.get(), CCBlocks.WAXED_EXPOSED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.WEATHERED_COPPER_BRICKS.get(), CCBlocks.WAXED_WEATHERED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.OXIDIZED_COPPER_BRICKS.get(), CCBlocks.WAXED_OXIDIZED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.COPPER_BRICK_STAIRS.get(), CCBlocks.WAXED_COPPER_BRICK_STAIRS.get());
+		builder.put(CCBlocks.EXPOSED_COPPER_BRICK_STAIRS.get(), CCBlocks.WAXED_EXPOSED_COPPER_BRICK_STAIRS.get());
+		builder.put(CCBlocks.WEATHERED_COPPER_BRICK_STAIRS.get(), CCBlocks.WAXED_WEATHERED_COPPER_BRICK_STAIRS.get());
+		builder.put(CCBlocks.OXIDIZED_COPPER_BRICK_STAIRS.get(), CCBlocks.WAXED_OXIDIZED_COPPER_BRICK_STAIRS.get());
+		builder.put(CCBlocks.COPPER_BRICK_SLAB.get(), CCBlocks.WAXED_COPPER_BRICK_SLAB.get());
+		builder.put(CCBlocks.EXPOSED_COPPER_BRICK_SLAB.get(), CCBlocks.WAXED_EXPOSED_COPPER_BRICK_SLAB.get());
+		builder.put(CCBlocks.WEATHERED_COPPER_BRICK_SLAB.get(), CCBlocks.WAXED_WEATHERED_COPPER_BRICK_SLAB.get());
+		builder.put(CCBlocks.OXIDIZED_COPPER_BRICK_SLAB.get(), CCBlocks.WAXED_OXIDIZED_COPPER_BRICK_SLAB.get());
+		builder.put(CCBlocks.COPPER_BRICK_WALL.get(), CCBlocks.WAXED_COPPER_BRICK_WALL.get());
+		builder.put(CCBlocks.EXPOSED_COPPER_BRICK_WALL.get(), CCBlocks.WAXED_EXPOSED_COPPER_BRICK_WALL.get());
+		builder.put(CCBlocks.WEATHERED_COPPER_BRICK_WALL.get(), CCBlocks.WAXED_WEATHERED_COPPER_BRICK_WALL.get());
+		builder.put(CCBlocks.OXIDIZED_COPPER_BRICK_WALL.get(), CCBlocks.WAXED_OXIDIZED_COPPER_BRICK_WALL.get());
+		builder.put(CCBlocks.CHISELED_COPPER_BRICKS.get(), CCBlocks.WAXED_CHISELED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.EXPOSED_CHISELED_COPPER_BRICKS.get(), CCBlocks.WAXED_EXPOSED_CHISELED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.WEATHERED_CHISELED_COPPER_BRICKS.get(), CCBlocks.WAXED_WEATHERED_CHISELED_COPPER_BRICKS.get());
+		builder.put(CCBlocks.OXIDIZED_CHISELED_COPPER_BRICKS.get(), CCBlocks.WAXED_OXIDIZED_CHISELED_COPPER_BRICKS.get());
 		HoneycombItem.WAXABLES = Suppliers.memoize(builder::build);
 	}
 
@@ -127,5 +180,12 @@ public class CCCompat {
 //		VibrationSystem.VIBRATION_FREQUENCY_FOR_EVENT = Object2IntMaps.unmodifiable(Util.make(new Object2IntOpenHashMap<>((Object2IntMap) VibrationSystem.VIBRATION_FREQUENCY_FOR_EVENT), (map) -> {
 //			map.put(CCGameEvents.TUNING_FORK_VIBRATE.get(), 10);
 //		}));
+	}
+
+	private static void makeVillagersScaredOfRats() {
+		ImmutableMap.Builder<EntityType<?>, Float> builder = ImmutableMap.builder();
+		VillagerHostilesSensor.ACCEPTABLE_DISTANCE_FROM_HOSTILES.forEach(builder::put);
+		builder.put(CCEntityTypes.RAT.get(), 5.0F);
+		VillagerHostilesSensor.ACCEPTABLE_DISTANCE_FROM_HOSTILES = builder.build();
 	}
 }

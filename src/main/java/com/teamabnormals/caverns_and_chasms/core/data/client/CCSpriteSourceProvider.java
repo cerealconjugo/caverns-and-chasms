@@ -4,10 +4,15 @@ import com.teamabnormals.blueprint.core.api.BlueprintTrims;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCTrimMaterials;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCTrimPatterns;
+import com.teamabnormals.clayworks.core.api.ClayworksTrims;
 import net.minecraft.client.renderer.texture.atlas.sources.DirectoryLister;
+import net.minecraft.client.renderer.texture.atlas.sources.SingleFile;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.SpriteSourceProvider;
+
+import java.util.Optional;
 
 public final class CCSpriteSourceProvider extends SpriteSourceProvider {
 
@@ -18,11 +23,14 @@ public final class CCSpriteSourceProvider extends SpriteSourceProvider {
 	@Override
 	protected void addSources() {
 		this.atlas(BlueprintTrims.ARMOR_TRIMS_ATLAS)
-				.addSource(BlueprintTrims.patternPermutationsOfVanillaMaterials(CCTrimPatterns.EXILE, CCTrimPatterns.SANGUINE))
+				.addSource(BlueprintTrims.patternPermutationsOfVanillaMaterials(CCTrimPatterns.EXILE, CCTrimPatterns.FORGER, CCTrimPatterns.IMMOLATE, CCTrimPatterns.RIM, CCTrimPatterns.SANGUINE))
 				.addSource(BlueprintTrims.materialPatternPermutations(
 						CCTrimMaterials.SPINEL,
+						CCTrimMaterials.ZIRCONIA,
 						CCTrimMaterials.SILVER,
 						CCTrimMaterials.SILVER_DARKER,
+						CCTrimMaterials.TIN,
+						CCTrimMaterials.TURQUOISE,
 						CCTrimMaterials.NECROMIUM,
 						CCTrimMaterials.NECROMIUM_DARKER,
 						CCTrimMaterials.SANGUINE,
@@ -30,14 +38,28 @@ public final class CCSpriteSourceProvider extends SpriteSourceProvider {
 				));
 		this.atlas(SpriteSourceProvider.BLOCKS_ATLAS)
 				.addSource(new DirectoryLister("entity/toolbox", "entity/toolbox/"))
+				.addSource(new SingleFile(new ResourceLocation(CavernsAndChasms.MOD_ID, "entity/atoning_table_book"), Optional.empty()))
 				.addSource(BlueprintTrims.materialPermutationsForItemLayers(
 						CCTrimMaterials.SPINEL,
+						CCTrimMaterials.ZIRCONIA,
 						CCTrimMaterials.SILVER,
 						CCTrimMaterials.SILVER_DARKER,
+						CCTrimMaterials.TIN,
+						CCTrimMaterials.TURQUOISE,
 						CCTrimMaterials.NECROMIUM,
 						CCTrimMaterials.NECROMIUM_DARKER,
 						CCTrimMaterials.SANGUINE,
 						CCTrimMaterials.SANGUINE_DARKER
+				));
+		this.atlas(ClayworksTrims.DECORATED_POT_ATLAS)
+				.addSource(ClayworksTrims.materialPatternPermutations(
+						CCTrimMaterials.SPINEL,
+						CCTrimMaterials.ZIRCONIA,
+						CCTrimMaterials.SILVER,
+						CCTrimMaterials.TIN,
+						CCTrimMaterials.TURQUOISE,
+						CCTrimMaterials.NECROMIUM,
+						CCTrimMaterials.SANGUINE
 				));
 	}
 

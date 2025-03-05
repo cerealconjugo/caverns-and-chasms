@@ -18,8 +18,11 @@ import com.teamabnormals.caverns_and_chasms.core.other.tags.CCInstrumentTags;
 import com.teamabnormals.caverns_and_chasms.integration.boatload.CCBoatTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet.Named;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.CreativeModeTab.TabVisibility;
@@ -38,6 +41,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.teamabnormals.blueprint.core.util.item.ItemStackUtil.is;
@@ -47,6 +51,8 @@ import static net.minecraft.world.item.crafting.Ingredient.of;
 @EventBusSubscriber(modid = CavernsAndChasms.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class CCItems {
 	public static final ItemSubRegistryHelper HELPER = CavernsAndChasms.REGISTRY_HELPER.getItemSubHelper();
+
+	public static final Rarity FANCY = Rarity.create(CavernsAndChasms.MOD_ID + ":fancy", style -> style.withColor(0x2BFF75));
 
 	public static final RegistryObject<Item> TUNING_FORK = HELPER.createItem("tuning_fork", () -> new TuningForkItem(new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> BAROMETER = HELPER.createItem("barometer", () -> new Item(new Item.Properties()));
@@ -73,6 +79,7 @@ public class CCItems {
 	public static final RegistryObject<Item> SILVER_HORSE_ARMOR = HELPER.createItem("silver_horse_armor", () -> new SilverHorseArmorItem(new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> DEPTH_GAUGE = HELPER.createItem("depth_gauge", () -> new Item(new Item.Properties()));
 	public static final RegistryObject<Item> LARGE_ARROW = HELPER.createItem("large_arrow", () -> new LargeArrowItem(new Item.Properties()));
+	public static final RegistryObject<Item> FOIL = HELPER.createItem("foil", () -> new FoilItem(CCItemTiers.FOIL, 0, -2.4F, new Item.Properties()));
 
 	public static final RegistryObject<Item> NECROMIUM_INGOT = HELPER.createItem("necromium_ingot", () -> new Item(new Item.Properties().fireResistant()));
 	public static final RegistryObject<Item> NECROMIUM_NUGGET = HELPER.createItem("necromium_nugget", () -> new Item(new Item.Properties().fireResistant()));
@@ -93,11 +100,25 @@ public class CCItems {
 	public static final RegistryObject<Item> SANGUINE_LEGGINGS = HELPER.createItem("sanguine_leggings", () -> new SanguineArmorItem(CCArmorMaterials.SANGUINE, ArmorItem.Type.LEGGINGS, new Item.Properties()));
 	public static final RegistryObject<Item> SANGUINE_BOOTS = HELPER.createItem("sanguine_boots", () -> new SanguineArmorItem(CCArmorMaterials.SANGUINE, ArmorItem.Type.BOOTS, new Item.Properties()));
 
+	public static final RegistryObject<Item> RAW_TIN = HELPER.createItem("raw_tin", () -> new Item(new Item.Properties()));
+	public static final RegistryObject<Item> TIN_INGOT = HELPER.createItem("tin_ingot", () -> new Item(new Item.Properties()));
+	public static final RegistryObject<Item> TIN_NUGGET = HELPER.createItem("tin_nugget", () -> new Item(new Item.Properties()));
+
+	public static final RegistryObject<Item> TURQUOISE = HELPER.createItem("turquoise", () -> new Item(new Item.Properties().rarity(FANCY)));
+	public static final RegistryObject<Item> CAVIAR = HELPER.createItem("caviar", () -> new CaviarItem(new Item.Properties().stacksTo(1).rarity(FANCY).food(CCFoods.CAVIAR)));
+	public static final RegistryObject<Item> MONOCLE = HELPER.createItem("monocle", () -> new MonocleItem(new Item.Properties().stacksTo(1).rarity(FANCY)));
+
 	public static final RegistryObject<Item> SPINEL = HELPER.createItem("spinel", () -> new Item(new Item.Properties()));
 	public static final RegistryObject<Item> BEJEWELED_PEARL = HELPER.createItem("bejeweled_pearl", () -> new BejeweledPearlItem(new Item.Properties().stacksTo(16)));
 	public static final RegistryObject<Item> BEJEWELED_APPLE = HELPER.createItem("bejeweled_apple", () -> new BejeweledAppleItem(new Item.Properties().food(CCFoods.BEJEWELED_APPLE).rarity(Rarity.RARE)));
 	public static final RegistryObject<Item> TETHER_POTION = HELPER.createItem("tether_potion", () -> new TetherPotionItem((new Item.Properties()).stacksTo(1)));
+	public static final RegistryObject<Item> IMPACT_POTION = HELPER.createItem("impact_potion", () -> new ImpactPotionItem(new Item.Properties().stacksTo(1)));
+	public static final RegistryObject<Item> TRAIL_POTION = HELPER.createItem("trail_potion", () -> new TrailPotionItem(new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> BLUNT_ARROW = HELPER.createItem("blunt_arrow", () -> new BluntArrowItem(new Item.Properties()));
+	public static final RegistryObject<Item> TMT_MINECART = HELPER.createItem("tmt_minecart", () -> new TmtMinecartItem(new Item.Properties().stacksTo(1)));
+
+	public static final RegistryObject<Item> ZIRCONIA = HELPER.createItem("zirconia", () -> new Item(new Item.Properties()));
+	public static final RegistryObject<Item> MUSIC_DISC_COPY = HELPER.createItem("music_disc_copy", () -> new CopyRecordItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
 
 	public static final RegistryObject<Item> DEEPER_HEAD = HELPER.createItem("deeper_head", () -> new StandingAndWallBlockItem(CCBlocks.DEEPER_HEAD.get(), CCBlocks.DEEPER_WALL_HEAD.get(), new Item.Properties().rarity(Rarity.UNCOMMON), Direction.DOWN));
 	public static final RegistryObject<Item> PEEPER_HEAD = HELPER.createItem("peeper_head", () -> new StandingAndWallBlockItem(CCBlocks.PEEPER_HEAD.get(), CCBlocks.PEEPER_WALL_HEAD.get(), new Item.Properties().rarity(Rarity.UNCOMMON), Direction.DOWN));
@@ -113,17 +134,29 @@ public class CCItems {
 	public static final RegistryObject<Item> AZALEA_FURNACE_BOAT = HELPER.createItem("azalea_furnace_boat", ModList.get().isLoaded("boatload") ? CCBoatTypes.AZALEA_FURNACE_BOAT : () -> new Item(new Item.Properties()));
 	public static final RegistryObject<Item> LARGE_AZALEA_BOAT = HELPER.createItem("large_azalea_boat", ModList.get().isLoaded("boatload") ? CCBoatTypes.LARGE_AZALEA_BOAT : () -> new Item(new Item.Properties()));
 
+	public static final RegistryObject<Item> COPPER_HORN = HELPER.createItem("copper_horn", () -> new CopperHornItem((new Item.Properties()).stacksTo(1), CCInstrumentTags.HARMONY_COPPER_HORNS, CCInstrumentTags.MELODY_COPPER_HORNS, CCInstrumentTags.BASS_COPPER_HORNS));
 	public static final RegistryObject<Item> LOST_GOAT_HORN = HELPER.createItem("lost_goat_horn", () -> new InstrumentItem((new Item.Properties()).stacksTo(1), CCInstrumentTags.LOST_GOAT_HORNS));
 
 	public static final RegistryObject<Item> MUSIC_DISC_EPILOGUE = HELPER.createItem("music_disc_epilogue", () -> new BlueprintRecordItem(11, CCSoundEvents.EPILOGUE, new Item.Properties().stacksTo(1).rarity(Rarity.RARE), 77));
 	public static final RegistryObject<Item> ABNORMALS_BANNER_PATTERN = HELPER.createItem("abnormals_banner_pattern", () -> new BannerPatternItem(CCBannerPatternTags.PATTERN_ITEM_ABNORMALS, new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+
 	public static final RegistryObject<Item> EXILE_ARMOR_TRIM_SMITHING_TEMPLATE = HELPER.createItem("exile_armor_trim_smithing_template", () -> SmithingTemplateItem.createArmorTrimTemplate(CCTrimPatterns.EXILE));
+	public static final RegistryObject<Item> FORGER_ARMOR_TRIM_SMITHING_TEMPLATE = HELPER.createItem("forger_armor_trim_smithing_template", () -> SmithingTemplateItem.createArmorTrimTemplate(CCTrimPatterns.FORGER));
+	public static final RegistryObject<Item> IMMOLATE_ARMOR_TRIM_SMITHING_TEMPLATE = HELPER.createItem("immolate_armor_trim_smithing_template", () -> SmithingTemplateItem.createArmorTrimTemplate(CCTrimPatterns.IMMOLATE));
+	public static final RegistryObject<Item> RIM_ARMOR_TRIM_SMITHING_TEMPLATE = HELPER.createItem("rim_armor_trim_smithing_template", () -> SmithingTemplateItem.createArmorTrimTemplate(CCTrimPatterns.RIM));
+
+	public static final RegistryObject<Item> BOOM_POTTERY_SHERD = HELPER.createItem("boom_pottery_sherd", () -> new Item(new Item.Properties()));
+	public static final RegistryObject<Item> CAST_POTTERY_SHERD = HELPER.createItem("cast_pottery_sherd", () -> new Item(new Item.Properties()));
+	public static final RegistryObject<Item> RIDE_POTTERY_SHERD = HELPER.createItem("ride_pottery_sherd", () -> new Item(new Item.Properties()));
+	public static final RegistryObject<Item> STALKER_POTTERY_SHERD = HELPER.createItem("stalker_pottery_sherd", () -> new Item(new Item.Properties()));
+
+	public static final RegistryObject<Item> DIMMER = HELPER.createItem("dimmer", () -> new DimmerBlockItem(CCBlocks.DIMMER.get(), CCBlocks.WALL_DIMMER.get(), new Item.Properties()));
 
 	public static final RegistryObject<ForgeSpawnEggItem> DEEPER_SPAWN_EGG = HELPER.createSpawnEggItem("deeper", CCEntityTypes.DEEPER::get, 8355711, 13717260);
 	public static final RegistryObject<ForgeSpawnEggItem> PEEPER_SPAWN_EGG = HELPER.createSpawnEggItem("peeper", CCEntityTypes.PEEPER::get, 0x3E3434, 0x694242);
 	//	public static final RegistryObject<ForgeSpawnEggItem> FLY_SPAWN_EGG = HELPER.createSpawnEggItem("fly", CCEntityTypes.FLY::get, 920336, 7080720);
 	public static final RegistryObject<ForgeSpawnEggItem> MIME_SPAWN_EGG = HELPER.createSpawnEggItem("mime", CCEntityTypes.MIME::get, 0x5A5050, 0x969964);
-	// public static final RegistryObject<ForgeSpawnEggItem> RAT_SPAWN_EGG = HELPER.createSpawnEggItem("rat", CCEntityTypes.RAT::get, 0x3B4248, 0xA76E6C);
+	public static final RegistryObject<ForgeSpawnEggItem> RAT_SPAWN_EGG = HELPER.createSpawnEggItem("rat", CCEntityTypes.RAT::get, 0x3B4248, 0xA76E6C);
 	public static final RegistryObject<ForgeSpawnEggItem> GLARE_SPAWN_EGG = HELPER.createSpawnEggItem("glare", CCEntityTypes.GLARE::get, 0x72942F, 0x516F2C);
 	public static final RegistryObject<ForgeSpawnEggItem> COPPER_GOLEM_SPAWN_EGG = HELPER.createSpawnEggItem("copper_golem", CCEntityTypes.COPPER_GOLEM::get, 0xDE7D65, 0x8A4129);
 
@@ -131,30 +164,44 @@ public class CCItems {
 		CreativeModeTabContentsPopulator.mod(CavernsAndChasms.MOD_ID)
 				.tab(FOOD_AND_DRINKS)
 				.addItemsBefore(of(Items.GOLDEN_APPLE), BEJEWELED_APPLE)
+				.addItemsBefore(of(Items.MILK_BUCKET), CAVIAR)
 				.addItemsAfter(of(Items.MILK_BUCKET), GOLDEN_MILK_BUCKET)
+				.editor(event -> event.getParameters().holders().lookup(Registries.POTION).ifPresent(registry -> {
+					generatePotionEffectTypes(event, of(Items.LINGERING_POTION), registry, Items.POTION, true);
+					generatePotionEffectTypes(event, of(Items.LINGERING_POTION), registry, Items.SPLASH_POTION, true);
+					generatePotionEffectTypes(event, of(Items.LINGERING_POTION), registry, Items.LINGERING_POTION, true);
+				}))
 				.tab(FUNCTIONAL_BLOCKS)
 				.addItemsAfter(of(Items.ARMOR_STAND), OXIDIZED_COPPER_GOLEM, WAXED_OXIDIZED_COPPER_GOLEM)
 				.addItemsAfter(of(Items.CREEPER_HEAD), DEEPER_HEAD, PEEPER_HEAD, MIME_HEAD)
 				.tab(INGREDIENTS)
+				.addItemsAfter(of(Items.RAW_COPPER), RAW_TIN)
 				.addItemsAfter(of(Items.RAW_GOLD), RAW_SILVER)
-				.addItemsAfter(of(Items.LAPIS_LAZULI), SPINEL)
-				.addItemsBefore(of(Items.GOLD_NUGGET), COPPER_NUGGET)
+				.addItemsAfter(of(Items.LAPIS_LAZULI), SPINEL, TURQUOISE, ZIRCONIA)
+				.addItemsBefore(of(Items.GOLD_NUGGET), COPPER_NUGGET, TIN_NUGGET)
 				.addItemsAfter(of(Items.GOLD_NUGGET), SILVER_NUGGET, NETHERITE_NUGGET, NECROMIUM_NUGGET)
+				.addItemsAfter(of(Items.COPPER_INGOT), TIN_INGOT)
 				.addItemsAfter(of(Items.GOLD_INGOT), SILVER_INGOT)
 				.addItemsAfter(of(Items.NETHERITE_INGOT), NECROMIUM_INGOT, LIVING_FLESH)
 				.addItemsAfter(of(Items.MOJANG_BANNER_PATTERN), ABNORMALS_BANNER_PATTERN)
 				.addItemsAfter(of(Items.ENDER_EYE), BEJEWELED_PEARL)
+				.addItemsBefore(of(Items.WARD_ARMOR_TRIM_SMITHING_TEMPLATE), FORGER_ARMOR_TRIM_SMITHING_TEMPLATE, IMMOLATE_ARMOR_TRIM_SMITHING_TEMPLATE, RIM_ARMOR_TRIM_SMITHING_TEMPLATE)
 				.addItemsAfter(of(Items.RIB_ARMOR_TRIM_SMITHING_TEMPLATE), EXILE_ARMOR_TRIM_SMITHING_TEMPLATE)
+				.addItemsAlphabetically(stack -> stack.is(ItemTags.DECORATED_POT_SHERDS), BOOM_POTTERY_SHERD, CAST_POTTERY_SHERD, RIDE_POTTERY_SHERD, STALKER_POTTERY_SHERD)
 				.tab(TOOLS_AND_UTILITIES)
 				.addItemsAfter(of(Items.GOLDEN_HOE), SILVER_SHOVEL, SILVER_PICKAXE, SILVER_AXE, SILVER_HOE)
 				.addItemsAfter(of(Items.NETHERITE_HOE), NECROMIUM_SHOVEL, NECROMIUM_PICKAXE, NECROMIUM_AXE, NECROMIUM_HOE)
 				.addItemsBefore(of(Items.CLOCK), BAROMETER, TUNING_FORK)
-				.addItemsAfter(of(Items.SPYGLASS), DEPTH_GAUGE)
+				.addItemsAfter(of(Items.SPYGLASS), MONOCLE, DEPTH_GAUGE)
+				.addItemsAfter(of(Items.TNT_MINECART), TMT_MINECART)
 				.addItemsBefore(of(Items.FISHING_ROD), GOLDEN_BUCKET, GOLDEN_WATER_BUCKET, GOLDEN_LAVA_BUCKET, GOLDEN_POWDER_SNOW_BUCKET, GOLDEN_MILK_BUCKET, () -> Items.BUNDLE)
 				.addItemsAfter(of(Items.ENDER_EYE), BEJEWELED_PEARL)
 				.addItemsBefore(of(Items.MUSIC_DISC_PIGSTEP), MUSIC_DISC_EPILOGUE)
 				.addItemsBefore(of(Items.BAMBOO_RAFT), AZALEA_BOAT.getFirst(), AZALEA_BOAT.getSecond())
 				.addItemsBefore(modLoaded(Items.BAMBOO_RAFT, "boatload"), AZALEA_FURNACE_BOAT, LARGE_AZALEA_BOAT)
+				.editor(event -> event.getParameters().holders().lookup(Registries.INSTRUMENT).ifPresent(registry -> {
+					generateInstrumentTypes(event, registry, COPPER_HORN.get(), CCInstrumentTags.HARMONY_COPPER_HORNS, CCInstrumentTags.MELODY_COPPER_HORNS, CCInstrumentTags.BASS_COPPER_HORNS);
+				}))
 				.tab(COMBAT)
 				.addItemsAfter(of(Items.GOLDEN_SWORD), SILVER_SWORD)
 				.addItemsAfter(of(Items.GOLDEN_AXE), SILVER_AXE)
@@ -169,11 +216,20 @@ public class CCItems {
 				.addItemsAfter(of(Items.DIAMOND_HORSE_ARMOR), NETHERITE_HORSE_ARMOR, NECROMIUM_HORSE_ARMOR)
 				.addItemsBefore(of(Items.SNOWBALL), KUNAI)
 				.addItemsAfter(of(Items.SPECTRAL_ARROW), BLUNT_ARROW, LARGE_ARROW)
+				.addItemsAfter(of(Items.TRIDENT), FOIL)
 				.editor(event -> event.getParameters().holders().lookup(Registries.POTION).ifPresent(registry -> {
 					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, TETHER_POTION.get());
+					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, IMPACT_POTION.get());
+					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, TRAIL_POTION.get());
+					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, Items.TIPPED_ARROW, true);
+					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, TETHER_POTION.get(), true);
+					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, IMPACT_POTION.get(), true);
+					generatePotionEffectTypes(event, of(Items.TIPPED_ARROW), registry, TRAIL_POTION.get(), true);
 				}))
+				.tab(REDSTONE_BLOCKS)
+				.addItemsAfter(of(Items.TNT_MINECART), TMT_MINECART)
 				.tab(SPAWN_EGGS)
-				.addItemsAlphabetically(is(SpawnEggItem.class), DEEPER_SPAWN_EGG, PEEPER_SPAWN_EGG, MIME_SPAWN_EGG, GLARE_SPAWN_EGG, COPPER_GOLEM_SPAWN_EGG);
+				.addItemsAlphabetically(is(SpawnEggItem.class), DEEPER_SPAWN_EGG, PEEPER_SPAWN_EGG, MIME_SPAWN_EGG, GLARE_SPAWN_EGG, COPPER_GOLEM_SPAWN_EGG, RAT_SPAWN_EGG);
 	}
 
 	public static Predicate<ItemStack> modLoaded(ItemLike item, String... modids) {
@@ -181,10 +237,12 @@ public class CCItems {
 	}
 
 	private static void generatePotionEffectTypes(BuildCreativeModeTabContentsEvent event, Predicate<ItemStack> predicate, HolderLookup<Potion> potion, Item potionItem) {
+		generatePotionEffectTypes(event, predicate, potion, potionItem, false);
+	}
+
+	private static void generatePotionEffectTypes(BuildCreativeModeTabContentsEvent event, Predicate<ItemStack> predicate, HolderLookup<Potion> potion, Item potionItem, boolean subtle) {
 		TabVisibility visibility = TabVisibility.PARENT_AND_SEARCH_TABS;
-		List<ItemStack> items = potion.listElements().filter((p_270012_) -> {
-			return !p_270012_.is(Potions.EMPTY_ID);
-		}).map((p_269986_) -> {
+		List<ItemStack> items = potion.listElements().filter((potions) -> !potions.is(Potions.EMPTY_ID)).map((p_269986_) -> {
 			return PotionUtils.setPotion(new ItemStack(potionItem), p_269986_.value());
 		}).toList();
 
@@ -193,6 +251,8 @@ public class CCItems {
 			ItemStack stack = entry.getKey();
 			if (predicate.test(stack)) {
 				for (ItemStack itemValue : items) {
+					if (subtle)
+						itemValue.getOrCreateTag().putBoolean("Subtle", true);
 					entries.put(itemValue, visibility);
 				}
 				return;
@@ -200,7 +260,30 @@ public class CCItems {
 		}
 	}
 
+	private static void generateInstrumentTypes(BuildCreativeModeTabContentsEvent event, HolderLookup<Instrument> lookup, Item item, TagKey<Instrument> harmonyTag, TagKey<Instrument> melodyTag, TagKey<Instrument> bassTag) {
+		TabVisibility visibility = TabVisibility.PARENT_AND_SEARCH_TABS;
+
+		Optional<Named<Instrument>> harmonyOptional = lookup.get(harmonyTag);
+		Optional<Named<Instrument>> melodyOptional = lookup.get(melodyTag);
+		Optional<Named<Instrument>> bassOptional = lookup.get(bassTag);
+
+		MutableHashedLinkedMap<ItemStack, TabVisibility> entries = event.getEntries();
+		if (harmonyOptional.isPresent() && melodyOptional.isPresent() && bassOptional.isPresent()) {
+			for (Entry<ItemStack, TabVisibility> entry : entries) {
+				ItemStack stack = entry.getKey();
+				if (of(Items.GOAT_HORN).test(stack) && lookup.get(harmonyTag).isPresent()) {
+					for (int i = 0; i < lookup.get(harmonyTag).get().size(); i++) {
+						ItemStack horn = CopperHornItem.create(item, harmonyOptional.get().get(i), melodyOptional.get().get(i), bassOptional.get().get(i));
+						entries.putBefore(new ItemStack(Items.MUSIC_DISC_13), horn, visibility);
+					}
+					return;
+				}
+			}
+		}
+	}
+
 	public static class CCFoods {
 		public static final FoodProperties BEJEWELED_APPLE = new FoodProperties.Builder().nutrition(4).saturationMod(1.2F).alwaysEat().build();
+		public static final FoodProperties CAVIAR = new FoodProperties.Builder().nutrition(0).saturationMod(0.0F).alwaysEat().build();
 	}
 }

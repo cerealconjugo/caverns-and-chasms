@@ -3,11 +3,16 @@ package com.teamabnormals.caverns_and_chasms.core;
 import com.teamabnormals.blueprint.core.api.BlueprintTrims;
 import com.teamabnormals.blueprint.core.util.registry.RegistryHelper;
 import com.teamabnormals.caverns_and_chasms.client.CCShaders;
+import com.teamabnormals.caverns_and_chasms.client.gui.MonocleGuiOverlay;
+import com.teamabnormals.caverns_and_chasms.client.gui.MonocleGuiOverlay.MonocleHeadGuiOverlay;
 import com.teamabnormals.caverns_and_chasms.client.model.*;
+import com.teamabnormals.caverns_and_chasms.client.renderer.block.AtoningTableRenderer;
 import com.teamabnormals.caverns_and_chasms.client.renderer.entity.*;
 import com.teamabnormals.caverns_and_chasms.client.renderer.entity.layers.RatOnShoulderLayer;
 import com.teamabnormals.caverns_and_chasms.client.resources.DeeperSpriteUploader;
 import com.teamabnormals.caverns_and_chasms.common.item.TuningForkItem;
+import com.teamabnormals.caverns_and_chasms.common.network.S2CCustomSoundExplosionMessage;
+import com.teamabnormals.caverns_and_chasms.common.network.S2COpenStorageDuctMessage;
 import com.teamabnormals.caverns_and_chasms.common.network.S2CSpinelBoomMessage;
 import com.teamabnormals.caverns_and_chasms.core.data.client.CCBlockStateProvider;
 import com.teamabnormals.caverns_and_chasms.core.data.client.CCItemModelProvider;
@@ -25,8 +30,12 @@ import com.teamabnormals.caverns_and_chasms.core.registry.*;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCBlocks.CCSkullTypes;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCRecipes.CCRecipeSerializers;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCRecipes.CCRecipeTypes;
+import com.teamabnormals.caverns_and_chasms.core.registry.CCStructureTypes.CCStructurePieceTypes;
 import com.teamabnormals.caverns_and_chasms.core.registry.helper.CCBlockSubRegistryHelper;
 import com.teamabnormals.caverns_and_chasms.integration.quark.ToolboxTooltips.ToolboxComponent;
+import com.teamabnormals.gallery.core.data.client.GalleryAssetsRemolderProvider;
+import com.teamabnormals.gallery.core.data.client.GalleryItemModelProvider;
+import net.minecraft.client.model.MinecartModel;
 import net.minecraft.client.model.SkullModel;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.renderer.blockentity.CampfireRenderer;
@@ -45,6 +54,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
@@ -54,14 +64,17 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -87,9 +100,12 @@ public class CavernsAndChasms {
 		CCMobEffects.POTIONS.register(bus);
 		CCMobEffects.MOB_EFFECTS.register(bus);
 		CCFeatures.FEATURES.register(bus);
+		CCStructureTypes.STRUCTURE_TYPES.register(bus);
+		CCStructurePieceTypes.STRUCTURE_PIECE_TYPES.register(bus);
 		CCParticleTypes.PARTICLE_TYPES.register(bus);
 		CCRecipeSerializers.RECIPE_SERIALIZERS.register(bus);
 		CCRecipeTypes.RECIPE_TYPES.register(bus);
+		CCPlacementModifierTypes.PLACEMENT_MODIFIER_TYPES.register(bus);
 		CCBiomeModifierTypes.BIOME_MODIFIER_SERIALIZERS.register(bus);
 		CCPaintingVariants.PAINTING_VARIANTS.register(bus);
 		CCMenuTypes.MENU_TYPES.register(bus);
@@ -97,6 +113,15 @@ public class CavernsAndChasms {
 		CCGameEvents.GAME_EVENTS.register(bus);
 		CCPoiTypes.POI_TYPES.register(bus);
 		CCBannerPatterns.BANNER_PATTERNS.register(bus);
+		CCLootItemFunctions.LOOT_FUNCTION_TYPES.register(bus);
+		CCDecoratedPotPatterns.DECORATED_POT_PATTERNS.register(bus);
+
+		bus.addListener((ModConfigEvent event) -> {
+			final ModConfig config = event.getConfig();
+			if (config.getSpec() == CCConfig.COMMON_SPEC) {
+				CCConfig.COMMON.load();
+			}
+		});
 
 		bus.addListener(this::commonSetup);
 		bus.addListener(this::clientSetup);
@@ -111,6 +136,7 @@ public class CavernsAndChasms {
 			bus.addListener(this::registerItemColors);
 			bus.addListener(this::createSkullModels);
 			bus.addListener(this::registerClientTooltips);
+			bus.addListener(this::registerGuiOverlays);
 			bus.addListener(CCShaders::registerShaders);
 		});
 
@@ -176,13 +202,16 @@ public class CavernsAndChasms {
 		generator.addProvider(client, new CCBlockStateProvider(output, helper));
 		generator.addProvider(client, new CCSpriteSourceProvider(output, helper));
 		//generator.addProvider(client, new CCLanguageProvider(generator));
+
+		generator.addProvider(client, new GalleryItemModelProvider(MOD_ID, output, helper));
+		generator.addProvider(client, new GalleryAssetsRemolderProvider(MOD_ID, output, provider));
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	private void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
-		event.registerLayerDefinition(CCModelLayers.DEEPER, () -> DeeperModel.createBodyLayer(CubeDeformation.NONE));
+		event.registerLayerDefinition(CCModelLayers.DEEPER, () -> DeeperModel.createBodyLayer(CubeDeformation.NONE, true));
 		event.registerLayerDefinition(CCModelLayers.DEEPER_HEAD, SkullModel::createHumanoidHeadLayer);
-		event.registerLayerDefinition(CCModelLayers.DEEPER_ARMOR, () -> DeeperModel.createBodyLayer(new CubeDeformation(2.0F)));
+		event.registerLayerDefinition(CCModelLayers.DEEPER_ARMOR, () -> DeeperModel.createBodyLayer(new CubeDeformation(2.0F), false));
 		event.registerLayerDefinition(CCModelLayers.PEEPER, () -> PeeperModel.createBodyLayer(CubeDeformation.NONE));
 		event.registerLayerDefinition(CCModelLayers.PEEPER_HEAD, PeeperHeadModel::createHeadLayer);
 		event.registerLayerDefinition(CCModelLayers.PEEPER_ARMOR, () -> PeeperModel.createBodyLayer(new CubeDeformation(2.0F)));
@@ -193,6 +222,7 @@ public class CavernsAndChasms {
 		event.registerLayerDefinition(CCModelLayers.COPPER_GOLEM, CopperGolemModel::createBodyLayer);
 		event.registerLayerDefinition(CCModelLayers.GLARE, GlareModel::createBodyLayer);
 		event.registerLayerDefinition(CCModelLayers.TOOLBOX, ToolboxRenderer::createBodyLayer);
+		event.registerLayerDefinition(CCModelLayers.TMT_MINECART, MinecartModel::createBodyLayer);
 		event.registerLayerDefinition(CCModelLayers.LOST_GOAT, LostGoatModel::createBodyLayer);
 	}
 
@@ -203,11 +233,12 @@ public class CavernsAndChasms {
 		event.registerEntityRenderer(CCEntityTypes.KUNAI.get(), KunaiRenderer::new);
 //		event.registerEntityRenderer(CCEntityTypes.FLY.get(), FlyRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.MIME.get(), MimeRenderer::new);
-		// event.registerEntityRenderer(CCEntityTypes.RAT.get(), RatRenderer::new);
+		event.registerEntityRenderer(CCEntityTypes.RAT.get(), RatRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.COPPER_GOLEM.get(), CopperGolemRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.OXIDIZED_COPPER_GOLEM.get(), OxidizedCopperGolemRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.BEJEWELED_PEARL.get(), ThrownItemRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.TMT.get(), TmtRenderer::new);
+		event.registerEntityRenderer(CCEntityTypes.TMT_MINECART.get(), TmtMinecartRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.BLUNT_ARROW.get(), BluntArrowRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.BLUNT_ARROW.get(), BluntArrowRenderer::new);
 		event.registerEntityRenderer(CCEntityTypes.LARGE_ARROW.get(), LargeArrowRenderer::new);
@@ -217,6 +248,7 @@ public class CavernsAndChasms {
 		event.registerBlockEntityRenderer(CCBlockEntityTypes.CUPRIC_CAMPFIRE.get(), CampfireRenderer::new);
 		event.registerBlockEntityRenderer(CCBlockEntityTypes.SKULL.get(), SkullBlockRenderer::new);
 		event.registerBlockEntityRenderer(CCBlockEntityTypes.TOOLBOX.get(), ToolboxRenderer::new);
+		event.registerBlockEntityRenderer(CCBlockEntityTypes.ATONING_TABLE.get(), AtoningTableRenderer::new);
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -231,7 +263,10 @@ public class CavernsAndChasms {
 	public void registerItemColors(RegisterColorHandlersEvent.Item event) {
 		event.register((stack, color) -> color > 0 ? -1 : TuningForkItem.getNoteColor(stack), CCItems.TUNING_FORK.get());
 		event.register((stack, color) -> color > 0 ? -1 : PotionUtils.getColor(stack), CCItems.TETHER_POTION.get());
+		event.register((stack, color) -> color > 0 ? -1 : PotionUtils.getColor(stack), CCItems.IMPACT_POTION.get());
+		event.register((stack, color) -> color > 0 ? -1 : PotionUtils.getColor(stack), CCItems.TRAIL_POTION.get());
 		event.register((stack, color) -> color > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), Items.BUNDLE);
+		event.register((stack, color) -> color > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), CCItems.FOIL.get());
 
 	}
 
@@ -249,7 +284,20 @@ public class CavernsAndChasms {
 		}
 	}
 
+
+	@OnlyIn(Dist.CLIENT)
+	private void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
+		event.registerAbove(new ResourceLocation("spyglass"), "monocle", new MonocleGuiOverlay());
+		event.registerAbove(location("monocle"), "monocle_head", new MonocleHeadGuiOverlay());
+	}
+
 	private void setupMessages() {
-		CHANNEL.registerMessage(0, S2CSpinelBoomMessage.class, S2CSpinelBoomMessage::serialize, S2CSpinelBoomMessage::deserialize, S2CSpinelBoomMessage::handle);
+		CHANNEL.registerMessage(0, S2CSpinelBoomMessage.class, S2CSpinelBoomMessage::serialize, S2CSpinelBoomMessage::deserialize, S2CSpinelBoomMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+		CHANNEL.registerMessage(1, S2CCustomSoundExplosionMessage.class, S2CCustomSoundExplosionMessage::serialize, S2CCustomSoundExplosionMessage::deserialize, S2CCustomSoundExplosionMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+		CHANNEL.registerMessage(2, S2COpenStorageDuctMessage.class, S2COpenStorageDuctMessage::serialize, S2COpenStorageDuctMessage::deserialize, S2COpenStorageDuctMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+	}
+
+	public static ResourceLocation location(String path) {
+		return new ResourceLocation(MOD_ID, path);
 	}
 }

@@ -1,27 +1,32 @@
 package com.teamabnormals.caverns_and_chasms.core.other;
 
 import com.teamabnormals.blueprint.common.world.storage.tracking.IDataManager;
+import com.teamabnormals.blueprint.core.events.FallingBlockEvent.FallingBlockTickEvent;
 import com.teamabnormals.blueprint.core.other.tags.BlueprintEntityTypeTags;
 import com.teamabnormals.blueprint.core.util.NetworkUtil;
 import com.teamabnormals.caverns_and_chasms.common.block.BrazierBlock;
+import com.teamabnormals.caverns_and_chasms.common.block.FlintBlock;
 import com.teamabnormals.caverns_and_chasms.common.entity.ControllableGolem;
 import com.teamabnormals.caverns_and_chasms.common.entity.ai.goal.FollowTuningForkGoal;
 import com.teamabnormals.caverns_and_chasms.common.entity.animal.Fly;
 import com.teamabnormals.caverns_and_chasms.common.entity.animal.Rat;
-import com.teamabnormals.caverns_and_chasms.common.entity.monster.Deeper;
+import com.teamabnormals.caverns_and_chasms.common.entity.monster.MovingPlayer;
 import com.teamabnormals.caverns_and_chasms.common.entity.monster.Peeper;
+import com.teamabnormals.caverns_and_chasms.common.entity.monster.deeper.Deeper;
 import com.teamabnormals.caverns_and_chasms.common.entity.projectile.BluntArrow;
-import com.teamabnormals.caverns_and_chasms.common.item.SanguineArmorItem;
-import com.teamabnormals.caverns_and_chasms.common.item.TetherPotionItem;
-import com.teamabnormals.caverns_and_chasms.common.item.TuningForkItem;
+import com.teamabnormals.caverns_and_chasms.common.item.*;
 import com.teamabnormals.caverns_and_chasms.common.item.silver.SilverItem;
+import com.teamabnormals.caverns_and_chasms.common.levelgen.feature.placement.TinArrowPlacement;
 import com.teamabnormals.caverns_and_chasms.core.CCConfig;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
 import com.teamabnormals.caverns_and_chasms.core.other.tags.CCBlockTags;
+import com.teamabnormals.caverns_and_chasms.core.other.tags.CCDamageTypeTags;
+import com.teamabnormals.caverns_and_chasms.core.other.tags.CCEntityTypeTags;
 import com.teamabnormals.caverns_and_chasms.core.other.tags.CCItemTags;
 import com.teamabnormals.caverns_and_chasms.core.registry.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -50,34 +55,41 @@ import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.animal.goat.Goat;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.SkeletonHorse;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.ArmorItem.Type;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.BaseRailBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.NoteBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingVisibilityEvent;
+import net.minecraftforge.event.entity.player.AnvilRepairEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -110,6 +122,8 @@ public class CCEvents {
 			cat.targetSelector.addGoal(1, new NonTameRandomTargetGoal<>(cat, Rat.class, false, target -> target instanceof Rat rat && !rat.isTame()));
 		} else if (entity instanceof Ocelot ocelot) {
 			ocelot.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(ocelot, Rat.class, false));
+		} else if (entity instanceof WanderingTrader trader) {
+			trader.goalSelector.addGoal(1, new AvoidEntityGoal<>(trader, Rat.class, 5.0F, 0.5D, 0.5D));
 		}
 	}
 
@@ -340,6 +354,7 @@ public class CCEvents {
 			ItemStack stack = event.getFrom();
 			if (stack.getItem() == CCItems.TETHER_POTION.get()) {
 				TetherPotionItem.updateTetherPotionEffects(event.getEntity(), stack, false);
+				stack.getOrCreateTag().putInt("cooldown", 600);
 			}
 		}
 	}
@@ -410,9 +425,9 @@ public class CCEvents {
 				TuningForkItem.playNote(target.level(), attacker, target.getX(), target.getEyeY(), target.getZ(), note);
 				NetworkUtil.spawnParticle("minecraft:note", target.getX(), target.getEyeY(), target.getZ(), (double) note / 24.0D, 0.0D, 0.0D);
 
-				if (attacker instanceof Player) {
-					((Player) attacker).displayClientMessage(Component.translatable(CCItems.TUNING_FORK.get().getDescriptionId() + ".note").append(": ").append(Component.translatable(CCItems.TUNING_FORK.get().getDescriptionId() + ".note." + note)).append(" (" + note + ")"), true);
-					TuningForkItem.orderGolemToAttackEntity(target, (Player) attacker);
+				if (attacker instanceof Player player) {
+					player.displayClientMessage(Component.translatable(CCItems.TUNING_FORK.get().getDescriptionId() + ".note").append(": ").append(Component.translatable(CCItems.TUNING_FORK.get().getDescriptionId() + ".note." + note)).append(" (" + note + ")"), true);
+					TuningForkItem.orderGolemToAttackEntity(target, player);
 				}
 			}
 
@@ -441,15 +456,28 @@ public class CCEvents {
 			}
 
 			if (slownessInfliction > 0.0F) {
-				System.out.println("Slowness amount: " + slownessInfliction);
-				System.out.println("Duration: " + ((int) (60 * slownessInfliction) / 20) + " seconds");
-				System.out.println("Level: " + ((int) slownessInfliction - 1));
 				attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) (60 * slownessInfliction), (int) slownessInfliction / 2 - 1));
 			}
 		}
 
-		if (source.getDirectEntity() instanceof BluntArrow) {
-			event.setAmount(0.0F);
+		if (source.getDirectEntity() instanceof BluntArrow || source.getEntity() instanceof LivingEntity living && living.getItemBySlot(EquipmentSlot.MAINHAND).getItem() instanceof FoilItem) {
+			if (source.getDirectEntity() instanceof BluntArrow) {
+				event.setAmount(0.0F);
+			}
+
+			if (source.getEntity() instanceof LivingEntity living && living.getItemBySlot(EquipmentSlot.MAINHAND).getItem() instanceof FoilItem) {
+				event.setAmount(0.0F);
+				if (target.isPassenger() && target.level().getRandom().nextInt(3) == 0 && target.getVehicle() != null) {
+					float rot = living.getVisualRotationYInDegrees();
+					float x = Mth.sin(rot * Mth.DEG_TO_RAD);
+					float z = -Mth.cos(rot * Mth.DEG_TO_RAD);
+
+					target.removeVehicle();
+					Vec3 vec3 = (new Vec3(x, 0.0D, z)).scale(-0.2F);
+					target.push(vec3.x, 0.8D, vec3.z);
+					target.hurtMarked = true;
+				}
+			}
 		}
 	}
 
@@ -460,14 +488,26 @@ public class CCEvents {
 		Level level = target.level();
 		ItemStack headstack = target.getItemBySlot(EquipmentSlot.HEAD);
 
-		if (headstack.getItem() == CCItems.TETHER_POTION.get() && !source.is(DamageTypeTags.BYPASSES_ARMOR)) {
+		if (headstack.getItem() instanceof TetherPotionItem && !source.is(DamageTypeTags.BYPASSES_ARMOR) && !source.is(CCDamageTypeTags.BYPASSES_TETHER_POTIONS)) {
 			Player player = target instanceof Player ? (Player) target : null;
 			target.broadcastBreakEvent(EquipmentSlot.HEAD);
 			target.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
 
-			for (MobEffectInstance instance : PotionUtils.getMobEffects(headstack)) {
-				if (instance.getEffect().isInstantenous()) {
-					instance.getEffect().applyInstantenousEffect(player, player, target, instance.getAmplifier(), 1.0D);
+			if (headstack.getItem() == CCItems.IMPACT_POTION.get()) {
+				for (MobEffectInstance instance : PotionUtils.getMobEffects(headstack)) {
+					if (instance.getEffect().isInstantenous()) {
+						instance.getEffect().applyInstantenousEffect(player, player, target, instance.getAmplifier(), 1.0D);
+					} else {
+						target.addEffect(new MobEffectInstance(instance));
+					}
+				}
+			} else if (headstack.getItem() == CCItems.TRAIL_POTION.get()) {
+				TrailPotionItem.makeAreaOfEffectCloud(headstack, PotionUtils.getPotion(headstack), target, level, true);
+			} else {
+				for (MobEffectInstance instance : PotionUtils.getMobEffects(headstack)) {
+					if (instance.getEffect().isInstantenous()) {
+						instance.getEffect().applyInstantenousEffect(player, player, target, instance.getAmplifier(), 1.0D);
+					}
 				}
 			}
 
@@ -487,6 +527,102 @@ public class CCEvents {
 						(looking == CCEntityTypes.MIME.get() && stack.is(CCItems.MIME_HEAD.get()))
 		) {
 			event.modifyVisibility(0.5F);
+		}
+	}
+
+	@SubscribeEvent
+	public static void onProjectileImpact(ProjectileImpactEvent event) {
+		Level level = event.getEntity().level();
+		Projectile projectile = event.getProjectile();
+		HitResult hitResult = event.getRayTraceResult();
+
+		if (hitResult.getType() == HitResult.Type.BLOCK && !projectile.getType().is(CCEntityTypeTags.NOT_DEFLECTED_BY_TIN)) {
+			BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+			BlockPos pos = blockHitResult.getBlockPos();
+			BlockState state = level.getBlockState(pos);
+			Direction direction = blockHitResult.getDirection();
+
+			boolean flag = state.is(CCBlockTags.DEFLECTS_PROJECTILES);
+
+			if (!flag) {
+				BlockPos blockpos1 = pos.relative(direction.getOpposite());
+				BlockState blockstate1 = level.getBlockState(blockpos1);
+				if (blockstate1.is(CCBlockTags.DEFLECTS_PROJECTILES) && blockstate1.isFaceSturdy(level, blockpos1, direction)) {
+					flag = true;
+					pos = blockpos1;
+					state = blockstate1;
+				}
+			}
+
+			if (!flag) {
+				BlockPos blockpos1 = pos.relative(direction);
+				BlockState blockstate1 = level.getBlockState(blockpos1);
+				if (blockstate1.is(CCBlockTags.DEFLECTS_PROJECTILES) && blockstate1.getCollisionShape(level, blockpos1, CollisionContext.of(projectile)).isEmpty() && blockstate1.getShape(level, blockpos1).bounds().inflate(1.0E-7D).move(blockpos1).contains(blockHitResult.getLocation())) {
+					flag = true;
+					pos = blockpos1;
+					state = blockstate1;
+				}
+			}
+
+			if (flag) {
+				Vec3 vec3 = projectile.getDeltaMovement();
+				double d0 = vec3.lengthSqr();
+				if (direction != Direction.UP || d0 > 0.04D) {
+					IDataManager data = (IDataManager) projectile;
+					RandomSource random = level.getRandom();
+					Axis axis = direction.getAxis();
+					Vec3 vec31 = hitResult.getLocation();
+					int i = blockHitResult.getDirection().getAxisDirection().getStep();
+
+					double j = 0.65D;
+					double k = 0.75D;
+
+					if (state.is(CCBlockTags.MAINTAINS_DEFLECT_VELOCITY)) {
+						j = 0.9D;
+						k = 0.9D;
+					}
+
+					if (state.is(CCBlockTags.WEAKER_DEFLECT_VELOCITY)) {
+						j -= 0.25D;
+						k -= 0.25D;
+					}
+
+					if (state.getBlock() instanceof TargetBlock targetBlock) {
+						targetBlock.onProjectileHit(level, state, blockHitResult.withPosition(pos), projectile);
+					}
+
+					if (axis == Axis.X) {
+						data.setValue(CCDataProcessors.DEFLECT_X, -vec3.x * j);
+						data.setValue(CCDataProcessors.DEFLECT_Y, vec3.y * k);
+						data.setValue(CCDataProcessors.DEFLECT_Z, vec3.z * k);
+						projectile.setPos(vec31.x + 0.01D * i, vec31.y, vec31.z);
+					} else if (axis == Axis.Y) {
+						data.setValue(CCDataProcessors.DEFLECT_X, vec3.x * k);
+						data.setValue(CCDataProcessors.DEFLECT_Y, -vec3.y * j);
+						data.setValue(CCDataProcessors.DEFLECT_Z, vec3.z * k);
+						projectile.setPos(vec31.x, i == 1 ? vec31.y : vec31.y - 0.01D, vec31.z);
+					} else if (axis == Axis.Z) {
+						data.setValue(CCDataProcessors.DEFLECT_X, vec3.x * k);
+						data.setValue(CCDataProcessors.DEFLECT_Y, vec3.y * k);
+						data.setValue(CCDataProcessors.DEFLECT_Z, -vec3.z * j);
+						projectile.setPos(vec31.x, vec31.y, vec31.z + 0.01D * i);
+					}
+					data.setValue(CCDataProcessors.SHOULD_DEFLECT, true);
+					projectile.setDeltaMovement(Vec3.ZERO);
+					projectile.checkInsideBlocks();
+
+					level.playSound(null, projectile.getX(), projectile.getY(), projectile.getZ(), CCSoundEvents.TIN_DEFLECT.get(), SoundSource.BLOCKS, Math.min((float) d0 * 0.7F + 0.2F, 1.0F), Math.min(0.5F + (float) d0 * 0.8F, 1.8F));
+					for (int l = 0; l < 3; ++l) {
+						Vec3 vec32 = vec3.reverse().normalize();
+						double d1 = vec32.x * 0.2D + random.nextGaussian() * 0.05D;
+						double d2 = vec32.y * 0.2D + random.nextGaussian() * 0.05D;
+						double d3 = vec32.z * 0.2D + random.nextGaussian() * 0.05D;
+						level.addParticle(CCParticleTypes.SPARK.get(), vec31.x, vec31.y, vec31.z, d1, d2, d3);
+					}
+
+					event.setCanceled(true);
+				}
+			}
 		}
 	}
 
@@ -543,8 +679,7 @@ public class CCEvents {
 				if (golem != null) {
 					int forgettime = TuningForkItem.getForgetGolemTime(player);
 					if (forgettime > 0) {
-						if (!TuningForkItem.isTuningForkWithNote(player.getMainHandItem()) && !TuningForkItem.isTuningForkWithNote(player.getOffhandItem()))
-							TuningForkItem.setForgetGolemTime(player, forgettime - 1);
+						if (!TuningForkItem.isTuningForkWithNote(player.getMainHandItem()) && !TuningForkItem.isTuningForkWithNote(player.getOffhandItem())) TuningForkItem.setForgetGolemTime(player, forgettime - 1);
 					} else {
 						TuningForkItem.setControlledGolem(player, null);
 					}
@@ -566,16 +701,64 @@ public class CCEvents {
 		ItemStack headstack = entity.getItemBySlot(EquipmentSlot.HEAD);
 		if (!level.isClientSide() && headstack.getItem() == CCItems.TETHER_POTION.get()) {
 			TetherPotionItem.updateTetherPotionEffects(entity, headstack, true);
+
+			for (MobEffectInstance instance : PotionUtils.getMobEffects(headstack)) {
+				if (instance.getEffect().isInstantenous()) {
+					if (headstack.getTag().getInt("cooldown") > 0) {
+						headstack.getTag().putInt("cooldown", headstack.getTag().getInt("cooldown") - 1);
+					} else {
+						instance.getEffect().applyInstantenousEffect(entity, entity, entity, instance.getAmplifier(), 1.0D);
+						TetherPotionItem.instantEffectParticlesAndSound(level, BlockPos.containing(entity.getEyePosition(1.0F)), PotionUtils.getColor(headstack));
+						headstack.getTag().putInt("cooldown", 600);
+					}
+				}
+			}
 		}
+		if (!level.isClientSide && headstack.getItem() == CCItems.TRAIL_POTION.get()) {
+			MovingPlayer player = entity instanceof MovingPlayer ? (MovingPlayer) entity : null;
+			boolean moving = player == null && (!entity.getDeltaMovement().equals(new Vec3(0, -0.0784000015258789, 0)) && !entity.getDeltaMovement().equals(Vec3.ZERO));
+			if (entity.tickCount % 5 == 0) {
+				if (player != null && player.isMoving() || moving) {
+					TrailPotionItem.makeAreaOfEffectCloud(headstack, PotionUtils.getPotion(headstack), entity, level, false);
+				}
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void onFallingBlockTick(FallingBlockTickEvent event) {
+		FallingBlockEntity entity = event.getEntity();
+		Level level = entity.level();
+		if (!level.isClientSide) {
+			for (Direction dir : Direction.Plane.HORIZONTAL) {
+				BlockPos pos = entity.blockPosition().relative(dir);
+				if (level.getBlockState(pos).is(CCBlocks.FLINT_BLOCK.get())) {
+					FlintBlock.spark(level, pos, true);
+				}
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void onAnvilRepair(AnvilRepairEvent event) {
+		Player player = event.getEntity();
+		Level level = player.level();
+		if (event.getRight().is(CCItems.ZIRCONIA.get()))
+			player.level().playLocalSound(player.getX(), player.getY(), player.getZ(), CCSoundEvents.ZIRCONIA_ANVIL_USE.get(), SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F, false);
+	}
+
+	@SubscribeEvent
+	public static void onServerStopping(ServerStoppingEvent event) {
+		TinArrowPlacement.clearCache();
 	}
 
 	private static void rewindTeleport(LivingEntity entity) {
 		IDataManager data = ((IDataManager) entity);
 		ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, data.getValue(CCDataProcessors.REWIND_DIMENSION));
-		ServerLevel dimension = entity.getServer().getLevel(key);
+		ServerLevel level = entity.getServer().getLevel(key);
 
-		if (dimension != entity.getCommandSenderWorld()) {
-			entity.changeDimension(dimension, new ITeleporter() {
+		if (level != entity.getCommandSenderWorld()) {
+			entity.changeDimension(level, new ITeleporter() {
 				@Override
 				public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity) {
 					return repositionEntity.apply(false);
@@ -592,7 +775,6 @@ public class CCEvents {
 		else
 			entity.teleportTo(x, y, z);
 
-		entity.teleportTo(data.getValue(CCDataProcessors.REWIND_X), data.getValue(CCDataProcessors.REWIND_Y), data.getValue(CCDataProcessors.REWIND_Z));
 		entity.resetFallDistance();
 		entity.playSound(SoundEvents.CHORUS_FRUIT_TELEPORT, 1.0F, 1.0F);
 	}

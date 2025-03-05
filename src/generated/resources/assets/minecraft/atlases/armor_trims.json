@@ -22,6 +22,12 @@
       "textures": [
         "caverns_and_chasms:trims/models/armor/exile",
         "caverns_and_chasms:trims/models/armor/exile_leggings",
+        "caverns_and_chasms:trims/models/armor/forger",
+        "caverns_and_chasms:trims/models/armor/forger_leggings",
+        "caverns_and_chasms:trims/models/armor/immolate",
+        "caverns_and_chasms:trims/models/armor/immolate_leggings",
+        "caverns_and_chasms:trims/models/armor/rim",
+        "caverns_and_chasms:trims/models/armor/rim_leggings",
         "caverns_and_chasms:trims/models/armor/sanguine",
         "caverns_and_chasms:trims/models/armor/sanguine_leggings"
       ]
@@ -36,7 +42,10 @@
         "caverns_and_chasms_sanguine_darker": "caverns_and_chasms:trims/color_palettes/sanguine_darker",
         "caverns_and_chasms_silver": "caverns_and_chasms:trims/color_palettes/silver",
         "caverns_and_chasms_silver_darker": "caverns_and_chasms:trims/color_palettes/silver_darker",
-        "caverns_and_chasms_spinel": "caverns_and_chasms:trims/color_palettes/spinel"
+        "caverns_and_chasms_spinel": "caverns_and_chasms:trims/color_palettes/spinel",
+        "caverns_and_chasms_tin": "caverns_and_chasms:trims/color_palettes/tin",
+        "caverns_and_chasms_turquoise": "caverns_and_chasms:trims/color_palettes/turquoise",
+        "caverns_and_chasms_zirconia": "caverns_and_chasms:trims/color_palettes/zirconia"
       },
       "sources": [
         {

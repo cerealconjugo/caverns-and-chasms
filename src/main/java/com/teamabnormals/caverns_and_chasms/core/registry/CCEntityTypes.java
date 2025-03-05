@@ -4,21 +4,22 @@ import com.teamabnormals.blueprint.core.util.registry.EntitySubRegistryHelper;
 import com.teamabnormals.caverns_and_chasms.common.entity.LostGoat;
 import com.teamabnormals.caverns_and_chasms.common.entity.animal.CopperGolem;
 import com.teamabnormals.caverns_and_chasms.common.entity.animal.Glare;
+import com.teamabnormals.caverns_and_chasms.common.entity.animal.Rat;
 import com.teamabnormals.caverns_and_chasms.common.entity.decoration.OxidizedCopperGolem;
 import com.teamabnormals.caverns_and_chasms.common.entity.item.PrimedTmt;
-import com.teamabnormals.caverns_and_chasms.common.entity.monster.Deeper;
 import com.teamabnormals.caverns_and_chasms.common.entity.monster.Mime;
 import com.teamabnormals.caverns_and_chasms.common.entity.monster.Peeper;
+import com.teamabnormals.caverns_and_chasms.common.entity.monster.deeper.Deeper;
 import com.teamabnormals.caverns_and_chasms.common.entity.projectile.BluntArrow;
 import com.teamabnormals.caverns_and_chasms.common.entity.projectile.Kunai;
 import com.teamabnormals.caverns_and_chasms.common.entity.projectile.LargeArrow;
 import com.teamabnormals.caverns_and_chasms.common.entity.projectile.ThrownBejeweledPearl;
+import com.teamabnormals.caverns_and_chasms.common.entity.vehicle.MinecartTMT;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -42,7 +43,7 @@ public class CCEntityTypes {
 	public static final RegistryObject<EntityType<Peeper>> PEEPER = HELPER.createLivingEntity("peeper", Peeper::new, MobCategory.MONSTER, 0.6F, 2.2F);
 	public static final RegistryObject<EntityType<Mime>> MIME = HELPER.createLivingEntity("mime", Mime::new, MobCategory.MONSTER, 0.6F, 2.1F);
 	//	public static final RegistryObject<EntityType<Fly>> FLY = HELPER.createLivingEntity("fly", Fly::new, MobCategory.CREATURE, 0.4F, 0.4F);
-	// public static final RegistryObject<EntityType<Rat>> RAT = HELPER.createLivingEntity("rat", Rat::new, MobCategory.CREATURE, 0.5F, 0.45F);
+	public static final RegistryObject<EntityType<Rat>> RAT = HELPER.createLivingEntity("rat", Rat::new, MobCategory.CREATURE, 0.5F, 0.45F);
 	public static final RegistryObject<EntityType<Glare>> GLARE = HELPER.createLivingEntity("glare", Glare::new, MobCategory.AMBIENT, 0.5F, 0.75F);
 	public static final RegistryObject<EntityType<CopperGolem>> COPPER_GOLEM = HELPER.createLivingEntity("copper_golem", CopperGolem::new, MobCategory.MISC, 0.6F, 0.9F);
 	public static final RegistryObject<EntityType<OxidizedCopperGolem>> OXIDIZED_COPPER_GOLEM = ENTITY_TYPES.register("oxidized_copper_golem", () -> EntityType.Builder.<OxidizedCopperGolem>of(OxidizedCopperGolem::new, MobCategory.MISC).fireImmune().sized(0.6F, 0.9F).clientTrackingRange(10).build(new ResourceLocation(CavernsAndChasms.MOD_ID, "oxidized_copper_golem").toString()));
@@ -52,6 +53,7 @@ public class CCEntityTypes {
 	public static final RegistryObject<EntityType<BluntArrow>> BLUNT_ARROW = HELPER.createEntity("blunt_arrow", BluntArrow::new, BluntArrow::new, MobCategory.MISC, 0.5F, 0.5F);
 	public static final RegistryObject<EntityType<LargeArrow>> LARGE_ARROW = HELPER.createEntity("large_arrow", LargeArrow::new, LargeArrow::new, MobCategory.MISC, 0.75F, 0.75F);
 	public static final RegistryObject<EntityType<LostGoat>> LOST_GOAT = HELPER.createLivingEntity("lost_goat", LostGoat::new, LOST_GOAT_CATEGORY, 0.9F, 1.3F);
+	public static final RegistryObject<EntityType<MinecartTMT>> TMT_MINECART = HELPER.createEntity("tmt_minecart", MinecartTMT::new, MinecartTMT::new, MobCategory.MISC, 0.98F, 0.7F);
 
 	@SubscribeEvent
 	public static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -59,7 +61,7 @@ public class CCEntityTypes {
 		event.put(PEEPER.get(), Peeper.createAttributes().build());
 		event.put(MIME.get(), Mime.registerAttributes().build());
 //		event.put(FLY.get(), Fly.registerAttributes().build());
-		// event.put(RAT.get(), Rat.registerAttributes().build());
+		event.put(RAT.get(), Rat.registerAttributes().build());
 		event.put(GLARE.get(), Glare.createAttributes().build());
 		event.put(COPPER_GOLEM.get(), CopperGolem.registerAttributes().build());
 		event.put(OXIDIZED_COPPER_GOLEM.get(), OxidizedCopperGolem.registerAttributes().build());
@@ -68,7 +70,7 @@ public class CCEntityTypes {
 
 	@SubscribeEvent
 	public static void registerAttributes(EntityAttributeModificationEvent event) {
-		event.add(EntityType.SKELETON, Attributes.MAX_HEALTH, 10.0D);
+//		event.add(EntityType.SKELETON, Attributes.MAX_HEALTH, 10.0D);
 	}
 
 	@SubscribeEvent

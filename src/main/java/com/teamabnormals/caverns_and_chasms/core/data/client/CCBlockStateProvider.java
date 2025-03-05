@@ -2,23 +2,29 @@ package com.teamabnormals.caverns_and_chasms.core.data.client;
 
 import com.teamabnormals.blueprint.core.data.client.BlueprintBlockStateProvider;
 import com.teamabnormals.blueprint.core.data.client.BlueprintItemModelProvider;
+import com.teamabnormals.caverns_and_chasms.common.block.*;
+import com.teamabnormals.caverns_and_chasms.common.block.RefractorBlock.RefractorState;
+import com.teamabnormals.caverns_and_chasms.common.block.roller_door.RollerDoorBlock;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.Plane;
+import net.minecraft.data.BlockFamily;
+import net.minecraft.data.BlockFamily.Variant;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LightningRodBlock;
-import net.minecraft.world.level.block.WeightedPressurePlateBlock;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.ModelFile;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.RailShape;
+import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.client.model.generators.ModelFile.ExistingModelFile;
 import net.minecraftforge.client.model.generators.ModelFile.UncheckedModelFile;
-import net.minecraftforge.client.model.generators.ModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
+
+import java.util.Map;
 
 import static com.teamabnormals.caverns_and_chasms.core.other.CCBlockFamilies.*;
 import static com.teamabnormals.caverns_and_chasms.core.registry.CCBlocks.*;
@@ -38,6 +44,31 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.block(SILVER_BLOCK);
 		this.weightedPressurePlateBlock(MEDIUM_WEIGHTED_PRESSURE_PLATE, SILVER_BLOCK);
 
+		this.block(RAW_TIN_BLOCK);
+		this.block(TIN_ORE);
+		this.block(DEEPSLATE_TIN_ORE);
+		this.block(CASSITERITE_TIN_ORE);
+		this.block(TIN_BLOCK);
+		this.block(FLOAT_GLASS);
+		this.glassPaneBlock(FLOAT_GLASS_PANE, FLOAT_GLASS);
+
+		this.holdPlateBlock(HOLD_PLATE, TIN_BLOCK);
+		this.holdButtonBlock(TIN_BLOCK, HOLD_BUTTON);
+		this.dimmerBlock(DIMMER, WALL_DIMMER);
+		this.block(BOUNCER);
+		this.hoopBlock(HOOP);
+		this.storageDuctBlock(STORAGE_DUCT);
+		this.rollerDoorBlock(ROLLER_DOOR, ROLLER_DOOR_BOTTOM, ROLLER_DOOR_HEADER, ROLLER_DOOR_HEADER_BOTTOM);
+
+		this.blockFamilyWithChiseled(IRON_BRICKS_FAMILY);
+		this.blockFamilyWithChiseled(TIN_BRICKS_FAMILY);
+		this.blockFamilyWithChiseled(GOLD_BRICKS_FAMILY);
+		this.blockFamilyWithChiseled(SILVER_BRICKS_FAMILY);
+		this.copperBlocks(COPPER_BRICKS_FAMILY, WAXED_COPPER_BRICKS_FAMILY);
+		this.copperBlocks(EXPOSED_COPPER_BRICKS_FAMILY, WAXED_EXPOSED_COPPER_BRICKS_FAMILY);
+		this.copperBlocks(WEATHERED_COPPER_BRICKS_FAMILY, WAXED_WEATHERED_COPPER_BRICKS_FAMILY);
+		this.copperBlocks(OXIDIZED_COPPER_BRICKS_FAMILY, WAXED_OXIDIZED_COPPER_BRICKS_FAMILY);
+
 		this.block(SPINEL_ORE);
 		this.block(DEEPSLATE_SPINEL_ORE);
 		this.block(SPINEL_BLOCK);
@@ -46,6 +77,20 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.blockFamily(SPINEL_BRICKS_FAMILY);
 
 		this.dismantlingTableBlock(DISMANTLING_TABLE);
+		this.bejeweledAnvilBlock(BEJEWELED_ANVIL);
+		this.atoningTableBlock(ATONING_TABLE);
+
+		this.block(TURQUOISE_ORE);
+		this.block(DEEPSLATE_TURQUOISE_ORE);
+		this.block(TURQUOISE_BLOCK);
+		this.logBlock(TURQUOISE_PILLAR);
+		this.blockFamily(TURQUOISE_TILES_FAMILY);
+		this.caviarBlock(CAVIAR);
+
+		this.refractorBlock(REFRACTOR);
+		this.resistorBlock(RESISTOR);
+
+		this.block(ZIRCONIA_BLOCK);
 
 		this.cubeColumnBlock(LAPIS_LAZULI_LAMP);
 		this.logBlock(LAPIS_LAZULI_PILLAR);
@@ -58,6 +103,7 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.block(NECROMIUM_BLOCK);
 		this.block(ROTTEN_FLESH_BLOCK);
 		this.randomRotationBlock(ROCKY_DIRT);
+		this.flintBlock(FLINT_BLOCK);
 
 		this.blockFamily(COBBLESTONE_BRICKS_FAMILY);
 		this.blockFamily(COBBLESTONE_TILES_FAMILY);
@@ -75,6 +121,12 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.blockFamily(SUGILITE_FAMILY);
 		this.blockFamily(POLISHED_SUGILITE_FAMILY);
 
+		this.blockFamily(CASSITERITE_FAMILY);
+		this.blockFamily(SMOOTH_CASSITERITE_FAMILY);
+		this.blockFamilyWithChiseled(CASSITERITE_BRICKS_FAMILY);
+		this.blockFamily(POLISHED_CASSITERITE_FAMILY);
+		this.logBlock(CASSITERITE_PILLAR);
+
 		this.blockFamily(DRIPSTONE_SHINGLES_FAMILY);
 		this.block(CHISELED_DRIPSTONE_SHINGLES);
 		this.block(FLOODED_DRIPSTONE_SHINGLES);
@@ -87,6 +139,18 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 
 		this.cubeBottomTopBlock(TMT);
 
+		this.splurterBlock(SPLURTER);
+		this.scattererBlock(SCATTERER);
+
+		this.poweredRailBlock(HALT_RAIL, "rail", false, "");
+		this.poweredRailBlock(SPIKED_RAIL, "spiked_rail", true, "spikes");
+		this.poweredRailBlock(SLAUGHTER_RAIL, "slaughter_rail", true, "axe");
+
+		this.copperRailBlock(COPPER_RAIL, WAXED_COPPER_RAIL);
+		this.copperRailBlock(EXPOSED_COPPER_RAIL, WAXED_EXPOSED_COPPER_RAIL);
+		this.copperRailBlock(WEATHERED_COPPER_RAIL, WAXED_WEATHERED_COPPER_RAIL);
+		this.copperRailBlock(OXIDIZED_COPPER_RAIL, WAXED_OXIDIZED_COPPER_RAIL);
+
 		this.ironBarsBlock(COPPER_BARS);
 		this.ironBarsBlock(EXPOSED_COPPER_BARS);
 		this.ironBarsBlock(WEATHERED_COPPER_BARS);
@@ -97,6 +161,7 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.waxedCopperBarsBlock(WAXED_OXIDIZED_COPPER_BARS, OXIDIZED_COPPER_BARS);
 		this.ironBarsBlock(GOLDEN_BARS);
 		this.ironBarsBlock(SILVER_BARS);
+		this.ironBarsBlock(TIN_BARS);
 
 		this.toolboxBlocks(TOOLBOX, WAXED_TOOLBOX, Blocks.COPPER_BLOCK);
 		this.toolboxBlocks(EXPOSED_TOOLBOX, WAXED_EXPOSED_TOOLBOX, Blocks.EXPOSED_COPPER);
@@ -145,11 +210,136 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 
 		this.woodworksBlocks(AZALEA_PLANKS, AZALEA_BOARDS, AZALEA_LADDER, AZALEA_BOOKSHELF, AZALEA_BEEHIVE, AZALEA_CHEST, TRAPPED_AZALEA_CHEST);
 		this.chiseledBookshelfBlock(CHISELED_AZALEA_BOOKSHELF, ALTERNATE_BOOKSHELF_POSITIONS);
+
+		this.crossBlockWithPot(FALSE_HOPE, POTTED_FALSE_HOPE);
+
+		this.crossBlockWithPot(MOSCHATEL, POTTED_MOSCHATEL);
+		this.caveGrowthsBlock(CAVE_GROWTHS, POTTED_CAVE_GROWTHS);
+		this.caveGrowthsBlock(LURID_CAVE_GROWTHS, POTTED_LURID_CAVE_GROWTHS);
+		this.caveGrowthsBlock(WISPY_CAVE_GROWTHS, POTTED_WISPY_CAVE_GROWTHS);
+		this.caveGrowthsBlock(GRAINY_CAVE_GROWTHS, POTTED_GRAINY_CAVE_GROWTHS);
+		this.caveGrowthsBlock(WEIRD_CAVE_GROWTHS, POTTED_WEIRD_CAVE_GROWTHS);
+		this.caveGrowthsBlock(ZESTY_CAVE_GROWTHS, POTTED_ZESTY_CAVE_GROWTHS);
+	}
+
+	public void caveGrowthsBlock(RegistryObject<Block> caveGrowths, RegistryObject<Block> flowerPot) {
+		this.directionalBlock(caveGrowths.get(), this.models().cross(name(caveGrowths.get()), this.blockTexture(caveGrowths.get())));
+		this.generatedItem(caveGrowths.get(), "block");
+		this.simpleBlock(flowerPot.get(), this.models().singleTexture(name(flowerPot.get()), new ResourceLocation("block/flower_pot_cross"), "plant", new ResourceLocation(CavernsAndChasms.MOD_ID, "block/potted_" + name(caveGrowths.get()))));
 	}
 
 	public void waxedCopperBarsBlock(RegistryObject<Block> waxedCopperBars, RegistryObject<Block> copperBars) {
 		this.ironBarsBlock(waxedCopperBars.get(), blockTexture(copperBars.get()));
 		this.waxedGeneratedItem(waxedCopperBars.get(), "block");
+	}
+
+	@Override
+	public void ironBarsBlock(Block block, ResourceLocation texture) {
+		String name = name(block);
+		ResourceLocation edgeTexture = suffix(texture, "_edge");
+
+		ModelFile post = ironBarsBlock(name, "post", texture).texture("bars", edgeTexture);
+		ModelFile postEnds = ironBarsBlock(name, "post_ends", texture).texture("edge", edgeTexture);
+		ModelFile side = ironBarsBlock(name, "side", texture).texture("bars", texture).texture("edge", edgeTexture);
+		ModelFile sideAlt = ironBarsBlock(name, "side_alt", texture).texture("bars", texture).texture("edge", edgeTexture);
+		ModelFile cap = ironBarsBlock(name, "cap", texture).texture("bars", texture).texture("edge", edgeTexture);
+		ModelFile capAlt = ironBarsBlock(name, "cap_alt", texture).texture("bars", texture).texture("edge", edgeTexture);
+
+		this.paneBlock(block, post, postEnds, side, sideAlt, cap, capAlt);
+	}
+
+	public void splurterBlock(RegistryObject<Block> block) {
+		String name = name(block.get());
+
+		this.getVariantBuilder(block.get()).forAllStatesExcept(state -> {
+			Direction dir = state.getValue(BlockStateProperties.FACING);
+			boolean triggered = state.getValue(BlockStateProperties.TRIGGERED);
+			ResourceLocation texture = blockTexture(block.get());
+
+			Map<Direction, Integer> yRotations = Map.of(
+					Direction.NORTH, 0,
+					Direction.EAST, 90,
+					Direction.SOUTH, 180,
+					Direction.WEST, 270
+			);
+			ModelFile model = models().withExistingParent(name + (triggered ? "_on" : ""), "caverns_and_chasms:block/template_splurter")
+					.texture("front", texture.withSuffix(triggered ? "_front_activated" : "_front"))
+					.texture("side", texture.withSuffix("_side"))
+					.texture("back", texture.withSuffix("_rear"));
+			ModelFile modelVertical = models().withExistingParent(name + "_vertical" + (triggered ? "_on" : ""), "caverns_and_chasms:block/template_splurter_vertical")
+					.texture("front", texture.withSuffix(triggered ? "_front_vertical_activated" : "_front_vertical"))
+					.texture("side", texture.withSuffix("_side"))
+					.texture("back", texture.withSuffix("_rear"));
+			return ConfiguredModel.builder()
+					.modelFile((dir == Direction.DOWN || dir == Direction.UP) ? modelVertical : model)
+					.rotationX(dir == Direction.DOWN ? 180 : 0)
+					.rotationY(yRotations.getOrDefault(dir, 0))
+					.build();
+		}, BlockStateProperties.POWER);
+		this.blockItem(block.get());
+	}
+
+	public void scattererBlock(RegistryObject<Block> block) {
+		String name = name(block.get());
+
+		this.getVariantBuilder(block.get()).forAllStatesExcept(state -> {
+			Direction dir = state.getValue(BlockStateProperties.FACING);
+			boolean triggered = state.getValue(BlockStateProperties.TRIGGERED);
+			ResourceLocation texture = blockTexture(block.get());
+
+			Map<Direction, Integer> yRotations = Map.of(
+					Direction.NORTH, 0,
+					Direction.EAST, 90,
+					Direction.SOUTH, 180,
+					Direction.WEST, 270
+			);
+			ModelFile model = models().withExistingParent(name + (triggered ? "_on" : ""), "caverns_and_chasms:block/template_scatterer")
+					.texture("front", texture.withSuffix(triggered ? "_front_activated" : "_front"))
+					.texture("side", texture.withSuffix(triggered ? "_side_activated" : "_side"))
+					.texture("top", texture.withSuffix("_top"))
+					.texture("back", texture.withSuffix("_rear"));
+			ModelFile modelVertical = models().withExistingParent(name + "_vertical" + (triggered ? "_on" : ""), "caverns_and_chasms:block/template_scatterer_vertical")
+					.texture("front", texture.withSuffix(triggered ? "_front_vertical_activated" : "_front_vertical"))
+					.texture("side", texture.withSuffix(triggered ? "_side_activated" : "_side"))
+					.texture("back", texture.withSuffix("_rear"));
+			return ConfiguredModel.builder()
+					.modelFile((dir == Direction.DOWN || dir == Direction.UP) ? modelVertical : model)
+					.rotationX(dir == Direction.DOWN ? 180 : 0)
+					.rotationY(yRotations.getOrDefault(dir, 0))
+					.build();
+		}, BlockStateProperties.POWER);
+		this.blockItem(block.get());
+	}
+
+	public void glassPaneBlock(RegistryObject<Block> pane, RegistryObject<Block> glass) {
+		Block block = pane.get();
+		String name = name(block);
+
+		ResourceLocation texture = blockTexture(glass.get());
+		ResourceLocation edgeTexture = texture.withSuffix("_pane_top");
+
+		ModelFile post = glassPaneBlock(name, "post").texture("pane", texture).texture("edge", edgeTexture);
+		ModelFile side = glassPaneBlock(name, "side").texture("pane", texture).texture("edge", edgeTexture);
+		ModelFile sideAlt = glassPaneBlock(name, "side_alt").texture("pane", texture).texture("edge", edgeTexture);
+		ModelFile noSide = glassPaneBlock(name, "noside").texture("pane", texture);
+		ModelFile noSideAlt = glassPaneBlock(name, "noside_alt").texture("pane", texture);
+
+		this.glassPaneBlock(block, post, side, sideAlt, noSide, noSideAlt);
+		this.generatedItem(block, prefix("block/", BlueprintItemModelProvider.key(glass.get())));
+	}
+
+	public void glassPaneBlock(Block block, ModelFile post, ModelFile side, ModelFile sideAlt, ModelFile noSide, ModelFile noSideAlt) {
+		MultiPartBlockStateBuilder builder = getMultipartBuilder(block).part().modelFile(post).addModel().end();
+		PipeBlock.PROPERTY_BY_DIRECTION.forEach((dir, value) -> {
+			if (dir.getAxis().isHorizontal()) {
+				builder.part().modelFile(dir == Direction.SOUTH || dir == Direction.WEST ? sideAlt : side).rotationY(dir.getAxis() == Axis.X ? 90 : 0).addModel().condition(value, true).end();
+				builder.part().modelFile(dir == Direction.SOUTH || dir == Direction.EAST ? noSideAlt : noSide).rotationY(dir == Direction.WEST ? 270 : dir == Direction.SOUTH ? 90 : 0).addModel().condition(value, false).end();
+			}
+		});
+	}
+
+	public BlockModelBuilder glassPaneBlock(String name, String suffix) {
+		return models().getBuilder(name + "_" + suffix).parent(new UncheckedModelFile(new ResourceLocation("block/template_glass_pane_" + suffix)));
 	}
 
 	public void deepslateBlock(Block block) {
@@ -182,6 +372,62 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		ModelFile mirroredModel = models().singleTexture(name(block) + "_mirrored", mcLoc(ModelProvider.BLOCK_FOLDER + "/cube_mirrored_all"), "all", blockTexture(block));
 		this.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(model).nextModel().modelFile(mirroredModel).nextModel().modelFile(model).rotationY(180).nextModel().modelFile(mirroredModel).rotationY(180).build());
 		this.simpleBlockItem(block, model);
+	}
+
+	public void copperRailBlock(RegistryObject<Block> railBlock, RegistryObject<Block> waxedRailBlock) {
+		Block block = railBlock.get();
+
+		ModelFile rail = models().withExistingParent(name(block), "block/rail_flat").texture("rail", blockTexture(block));
+		ModelFile railNE = models().withExistingParent(name(block) + "_raised_ne", "block/template_rail_raised_ne").texture("rail", blockTexture(block));
+		ModelFile railSW = models().withExistingParent(name(block) + "_raised_sw", "block/template_rail_raised_sw").texture("rail", blockTexture(block));
+
+		this.getVariantBuilder(block).forAllStatesExcept(state -> {
+			RailShape shape = state.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
+			return ConfiguredModel.builder().modelFile(shape.isAscending() ? (shape == RailShape.ASCENDING_NORTH || shape == RailShape.ASCENDING_EAST ? railNE : railSW) : rail).rotationY(shape == RailShape.ASCENDING_WEST || shape == RailShape.ASCENDING_EAST || shape == RailShape.EAST_WEST ? 90 : 0).build();
+		}, BlockStateProperties.WATERLOGGED);
+
+		this.getVariantBuilder(waxedRailBlock.get()).forAllStatesExcept(state -> {
+			RailShape shape = state.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
+			return ConfiguredModel.builder().modelFile(shape.isAscending() ? (shape == RailShape.ASCENDING_NORTH || shape == RailShape.ASCENDING_EAST ? railNE : railSW) : rail).rotationY(shape == RailShape.ASCENDING_WEST || shape == RailShape.ASCENDING_EAST || shape == RailShape.EAST_WEST ? 90 : 0).build();
+		}, BlockStateProperties.WATERLOGGED);
+
+		this.generatedItem(block, "block");
+		this.waxedGeneratedItem(waxedRailBlock.get(), "block");
+	}
+
+	public void poweredRailBlock(RegistryObject<Block> railBlock, String parentName, boolean extrude, String extrudeName) {
+		Block block = railBlock.get();
+		this.getVariantBuilder(block).forAllStatesExcept(state -> {
+			RailShape shape = state.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
+
+			boolean isRaised = shape.isAscending();
+			boolean ne = shape == RailShape.ASCENDING_NORTH || shape == RailShape.ASCENDING_EAST;
+			boolean y90 = shape == RailShape.ASCENDING_WEST || shape == RailShape.EAST_WEST || shape == RailShape.ASCENDING_EAST;
+
+			String raised = isRaised ? (ne ? "_raised_ne" : "_raised_sw") : "";
+			String parent = isRaised ? "template_" + parentName + raised : parentName + "_flat";
+
+			String on;
+
+			if (block instanceof HaltRailBlock) {
+				boolean top = state.getValue(HaltRailBlock.TOP_POWERED);
+				boolean bottom = state.getValue(HaltRailBlock.BOTTOM_POWERED);
+				on = top && bottom ? "_on" : top ? "_top_on" : bottom ? "_bottom_on" : "";
+			} else {
+				on = state.getValue(BlockStateProperties.POWERED) ? "_on" : "";
+			}
+
+			BlockModelBuilder model = models().withExistingParent(name(block) + on + raised, (parentName.equals("rail") ? "" : CavernsAndChasms.MOD_ID + ":") + "block/" + parent)
+					.texture("rail", blockTexture(block) + on);
+
+			if (extrude) {
+				model.texture(extrudeName, blockTexture(block) + "_" + extrudeName + on);
+			}
+
+			return ConfiguredModel.builder().modelFile(model).rotationY(y90 ? 90 : 0).build();
+		}, BlockStateProperties.WATERLOGGED);
+
+		this.generatedItem(block, "block");
 	}
 
 	public void floodlightBlock(Block parent, Block block) {
@@ -217,6 +463,140 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.blockItem(block);
 	}
 
+	public void holdPlateBlock(RegistryObject<Block> block, RegistryObject<Block> base) {
+		ModelFile pressurePlate = models().pressurePlate(name(block.get()), blockTexture(base.get()));
+		ModelFile pressurePlateDown = models().pressurePlateDown(name(block.get()) + "_down", blockTexture(base.get()));
+		this.getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(!state.getValue(HoldPlateBlock.PRESSED) ? pressurePlate : pressurePlateDown).build());
+		this.blockItem(block);
+	}
+
+	public void holdButtonBlock(RegistryObject<Block> textureBlock, RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+
+		ResourceLocation texture = blockTexture(textureBlock.get());
+		ModelFile button = models().button(name(block), texture);
+		ModelFile buttonPressed = models().buttonPressed(name(block) + "_pressed", texture);
+		ModelFile buttonInventoryModel = models().buttonInventory(name(block) + "_inventory", texture);
+
+		getVariantBuilder(block).forAllStatesExcept(state -> {
+			Direction facing = state.getValue(HoldButtonBlock.FACING);
+			AttachFace face = state.getValue(HoldButtonBlock.FACE);
+			boolean pressed = state.getValue(HoldButtonBlock.PRESSED);
+
+			return ConfiguredModel.builder()
+					.modelFile(pressed ? buttonPressed : button)
+					.rotationX(face == AttachFace.FLOOR ? 0 : (face == AttachFace.WALL ? 90 : 180))
+					.rotationY((int) (face == AttachFace.CEILING ? facing : facing.getOpposite()).toYRot())
+					.uvLock(face == AttachFace.WALL)
+					.build();
+		}, HoldButtonBlock.POWERED);
+
+		this.itemModels().getBuilder(name(block)).parent(buttonInventoryModel);
+	}
+
+	public void dimmerBlock(RegistryObject<Block> registryObject, RegistryObject<Block> wall) {
+		Block block = registryObject.get();
+		Block wallBlock = wall.get();
+		this.getVariantBuilder(block)
+				.forAllStatesExcept(state -> {
+					int power = state.getValue(AbstractDimmerBlock.POWER);
+					String hanging = state.getValue(DimmerBlock.HANGING) ? "_hanging" : "";
+					ResourceLocation location = new ResourceLocation(CavernsAndChasms.MOD_ID, "block/dimmer_power_" + power);
+					return ConfiguredModel.builder()
+							.modelFile(models().withExistingParent(name(block) + hanging + "_power_" + power, CavernsAndChasms.MOD_ID + ":block/template_dimmer" + hanging).texture("dimmer", location))
+							.build();
+				}, BlockStateProperties.WATERLOGGED);
+
+		this.getVariantBuilder(wallBlock)
+				.forAllStatesExcept(state -> {
+					int power = state.getValue(AbstractDimmerBlock.POWER);
+					ResourceLocation location = new ResourceLocation(CavernsAndChasms.MOD_ID, "block/dimmer_power_" + power);
+					return ConfiguredModel.builder()
+							.modelFile(models().withExistingParent(name(wallBlock) + "_power_" + power, CavernsAndChasms.MOD_ID + ":block/template_dimmer_wall").texture("dimmer", location))
+							.rotationY((int) state.getValue(WallDimmerBlock.FACING).getOpposite().toYRot())
+							.build();
+				}, BlockStateProperties.WATERLOGGED);
+
+		this.generatedItem(block, "item");
+	}
+
+	public void hoopBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+		this.getVariantBuilder(block)
+				.forAllStatesExcept(state -> {
+					ResourceLocation location = new ResourceLocation(CavernsAndChasms.MOD_ID, "block/hoop_size_" + state.getValue(HoopBlock.SIZE) + (state.getValue(HoopBlock.OUTPUT_POWER) > 0 ? "_activated" : ""));
+					Axis axis = state.getValue(HoopBlock.AXIS);
+					return ConfiguredModel.builder()
+							.modelFile(models().withExistingParent(location.getPath(), CavernsAndChasms.MOD_ID + ":block/template_hoop_size_" + state.getValue(HoopBlock.SIZE)).texture("hoop", location))
+							.rotationX(axis.isHorizontal() ? 90 : 0)
+							.rotationY(axis == Axis.X ? 90 : 0)
+							.build();
+				}, BlockStateProperties.WATERLOGGED);
+		this.simpleBlockItem(block, new ExistingModelFile(new ResourceLocation(CavernsAndChasms.MOD_ID, "block/hoop_size_3"), this.models().existingFileHelper));
+	}
+
+	public void storageDuctBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+		this.getVariantBuilder(block)
+				.forAllStates(state -> {
+					Direction startFace = state.getValue(StorageDuctBlock.START_FACE);
+					Direction endFace = state.getValue(StorageDuctBlock.END_FACE);
+
+					if (startFace != endFace) {
+						Direction face1 = startFace;
+						Direction face2 = endFace;
+
+						boolean swap = false;
+
+						if (startFace == Direction.SOUTH && endFace == Direction.NORTH)
+							swap = true;
+						else if (startFace == Direction.EAST && (endFace == Direction.NORTH || endFace == Direction.SOUTH))
+							swap = true;
+						else if (startFace == Direction.WEST && endFace != Direction.UP && endFace != Direction.DOWN)
+							swap = true;
+						else if (startFace == Direction.UP && endFace != Direction.DOWN)
+							swap = true;
+						else if (startFace == Direction.DOWN)
+							swap = true;
+
+						if (swap) {
+							face1 = endFace;
+							face2 = startFace;
+						}
+
+						return ConfiguredModel.builder()
+								.modelFile(models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, "block/storage_duct_" + face1 + "_" + face2)))
+								.build();
+					} else {
+						return ConfiguredModel.builder()
+								.modelFile(models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, "block/storage_duct_invalid")))
+								.build();
+					}
+				});
+		this.simpleBlockItem(block, models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, "block/storage_duct_up_down")));
+	}
+
+	public void rollerDoorBlock(RegistryObject<Block> door, RegistryObject<Block> doorBottom, RegistryObject<Block> doorHeader, RegistryObject<Block> doorHeaderBottom) {
+		this.rollerDoorBlock(door);
+		this.rollerDoorBlock(doorBottom);
+		this.rollerDoorBlock(doorHeader);
+		this.rollerDoorBlock(doorHeaderBottom);
+		Block block = door.get();
+		this.simpleBlockItem(block, models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, name(block) + "_inventory")));
+	}
+
+	public void rollerDoorBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+		this.getVariantBuilder(block)
+				.forAllStatesExcept(state -> {
+					Direction direction = state.getValue(RollerDoorBlock.FACING);
+					return ConfiguredModel.builder()
+							.modelFile(models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, name(block) + "_" + state.getValue(RollerDoorBlock.OPENNESS))))
+							.rotationY(((int) direction.toYRot() + 180) % 360)
+							.build();
+				}, BlockStateProperties.WATERLOGGED);
+	}
+
 	public void dismantlingTableBlock(RegistryObject<Block> registryObject) {
 		Block block = registryObject.get();
 		ResourceLocation texture = suffix(blockTexture(block), "_");
@@ -232,9 +612,164 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.blockItem(block);
 	}
 
+	public void bejeweledAnvilBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+		ResourceLocation texture = suffix(blockTexture(block), "_");
+		this.horizontalBlock(registryObject.get(), this.models()
+				.withExistingParent(name(block), CavernsAndChasms.MOD_ID + ":block/template_bejeweled_anvil")
+				.texture("front", suffix(texture, "front"))
+				.texture("side", suffix(texture, "side"))
+				.texture("top", suffix(texture, "top"))
+				.texture("bottom", suffix(texture, "bottom"))
+				.texture("base_top", suffix(texture, "base_top"))
+				.texture("base_bottom", suffix(texture, "base_bottom"))
+		);
+		this.blockItem(block);
+	}
+
+	public void atoningTableBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+		ResourceLocation texture = suffix(blockTexture(block), "_");
+		this.simpleBlock(registryObject.get(), this.models()
+				.withExistingParent(name(block), "block/enchanting_table")
+				.texture("side", suffix(texture, "side"))
+				.texture("top", suffix(texture, "top"))
+				.texture("bottom", suffix(texture, "bottom"))
+				.texture("particle", suffix(texture, "bottom"))
+		);
+		this.blockItem(block);
+	}
+
+	public void caviarBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+		ResourceLocation texture = suffix(blockTexture(block), "_");
+		this.simpleBlock(registryObject.get(), this.models()
+				.withExistingParent(name(block), CavernsAndChasms.MOD_ID + ":block/template_caviar")
+				.texture("side", suffix(texture, "side"))
+				.texture("top", suffix(texture, "top"))
+				.texture("bottom", suffix(texture, "bottom"))
+		);
+		this.generatedItem(block, "item");
+	}
+
+	public void resistorBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+
+		ExistingModelFile model = this.models().getExistingFile(CavernsAndChasms.location("block/resistor"));
+		ExistingModelFile modelOn = this.models().getExistingFile(CavernsAndChasms.location("block/resistor_on"));
+
+		MultiPartBlockStateBuilder builder = this.getMultipartBuilder(block);
+		for (Direction direction : Plane.HORIZONTAL) {
+			int rotation = (int) (direction.toYRot() + 180) % 360;
+			builder.part().modelFile(model).rotationY(rotation).addModel().condition(HorizontalDirectionalBlock.FACING, direction).condition(ResistorBlock.POWERED, false);
+			builder.part().modelFile(modelOn).rotationY(rotation).addModel().condition(HorizontalDirectionalBlock.FACING, direction).condition(ResistorBlock.POWERED, true);
+
+			for (int i = 1; i < 15; i++) {
+				builder.part().modelFile(this.models().getExistingFile(CavernsAndChasms.location("block/resistor_button_" + i))).rotationY(rotation).addModel()
+						.condition(HorizontalDirectionalBlock.FACING, direction).condition(ResistorBlock.RESISTANCE, i);
+			}
+		}
+
+		this.generatedItem(block, "item");
+	}
+
+	public void refractorBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+
+		MultiPartBlockStateBuilder builder = this.getMultipartBuilder(block);
+		for (Direction direction : Plane.HORIZONTAL) {
+			int rotation = (int) (direction.toYRot() + 180) % 360;
+
+			for (RefractorState state : RefractorState.values()) {
+				ExistingModelFile model = this.models().getExistingFile(CavernsAndChasms.location("block/refractor" + getStringForState(state)));
+				builder.part().modelFile(model).rotationY(rotation).addModel().condition(HorizontalDirectionalBlock.FACING, direction).condition(RefractorBlock.POWERED, state);
+			}
+
+			for (Direction torchDirection : Plane.HORIZONTAL) {
+				if (torchDirection != Direction.NORTH) {
+					for (int i = 0; i < 4; i++) {
+						int torchRotation = (int) (rotation + torchDirection.toYRot() + 180) % 360;
+						IntegerProperty intProp = getPropertyForDirection(torchDirection);
+						if (i == 0) {
+							ExistingModelFile lock = this.models().getExistingFile(CavernsAndChasms.location("block/refractor_lock"));
+							builder.part().modelFile(lock).rotationY(torchRotation).addModel().condition(HorizontalDirectionalBlock.FACING, direction).condition(intProp, i);
+						} else {
+							String weight = getStringForWeight(i);
+							ExistingModelFile torch = this.models().getExistingFile(CavernsAndChasms.location("block/refractor_torch" + weight));
+							ExistingModelFile torchOn = this.models().getExistingFile(CavernsAndChasms.location("block/refractor_torch" + weight + "_on"));
+
+							builder.part().modelFile(torch).rotationY(torchRotation).addModel().condition(HorizontalDirectionalBlock.FACING, direction).condition(intProp, i).condition(RefractorBlock.POWERED, getStatesForDirection(torchDirection));
+							builder.part().modelFile(torchOn).rotationY(torchRotation).addModel().condition(HorizontalDirectionalBlock.FACING, direction).condition(intProp, i).condition(RefractorBlock.POWERED, getUnpoweredState(torchDirection));
+						}
+					}
+				}
+			}
+		}
+
+		this.generatedItem(block, "item");
+	}
+
+	public static String getStringForState(RefractorState state) {
+		return state == RefractorState.OFF ? "" : ((state == RefractorState.NONE ? "" : "_" + state.getSerializedName()) + "_on");
+	}
+
+	public static String getStringForWeight(int weight) {
+		return weight == 1 ? "_left" : weight == 2 ? "_center" : weight == 3 ? "_right" : "";
+	}
+
+	public static IntegerProperty getPropertyForDirection(Direction direction) {
+		return switch (direction) {
+			case EAST -> RefractorBlock.LEFT;
+			default -> RefractorBlock.CENTER;
+			case WEST -> RefractorBlock.RIGHT;
+		};
+	}
+
+	public static RefractorState[] getStatesForDirection(Direction direction) {
+		return switch (direction) {
+			case EAST -> new RefractorState[]{RefractorState.OFF, RefractorState.NONE, RefractorState.CENTER, RefractorState.RIGHT};
+			default -> new RefractorState[]{RefractorState.OFF, RefractorState.NONE, RefractorState.LEFT, RefractorState.RIGHT};
+			case WEST -> new RefractorState[]{RefractorState.OFF, RefractorState.NONE, RefractorState.LEFT, RefractorState.CENTER};
+		};
+	}
+
+	public static RefractorState getUnpoweredState(Direction direction) {
+		return switch (direction) {
+			case EAST -> RefractorState.LEFT;
+			default -> RefractorState.CENTER;
+			case WEST -> RefractorState.RIGHT;
+		};
+	}
+
 	public void randomRotationBlock(RegistryObject<Block> block) {
 		ModelFile model = cubeAll(block.get());
 		this.getVariantBuilder(block.get()).partialState().addModels(ConfiguredModel.allYRotations(model, 0, false));
+		this.blockItem(block);
+	}
+
+	public void randomRotationBlockBothAxis(RegistryObject<Block> block) {
+		ModelFile model = cubeAll(block.get());
+		this.getVariantBuilder(block.get()).partialState().addModels(ConfiguredModel.allRotations(model, false));
+		this.blockItem(block);
+	}
+
+	@Override
+	public void slabBlock(Block block, Block slab) {
+		if (slab instanceof SlabBlock slabBlock && (slabBlock == POLISHED_CALCITE_SLAB.get() || slabBlock == POLISHED_TUFF_SLAB.get() || slabBlock == POLISHED_SUGILITE_SLAB.get() || slabBlock == POLISHED_CASSITERITE_SLAB.get())) {
+			ResourceLocation side = blockTexture(slab);
+			ResourceLocation full = blockTexture(block);
+			this.slabBlock(slabBlock, models().slab(name(slab), side, full, full), models().slabTop(name(slab) + "_top", side, full, full), models().cubeColumn(name(slab) + "_double", side, full));
+			this.blockItem(slab);
+		} else {
+			super.slabBlock(block, slab);
+		}
+	}
+
+	public void flintBlock(RegistryObject<Block> block) {
+		ModelFile model = cubeAll(block.get());
+		ModelFile litModel = models().cubeAll("flint_block_lit", modLoc("block/flint_block_lit"));
+
+		this.getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.allRotations(state.getValue(FlintBlock.LIT) ? litModel : model, false));
 		this.blockItem(block);
 	}
 
@@ -249,6 +784,26 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		ModelFile pressurePlateDown = models().pressurePlateDown(name(block.get()) + "_down", blockTexture(base.get()));
 		this.getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(state.getValue(WeightedPressurePlateBlock.POWER) == 0 ? pressurePlate : pressurePlateDown).build());
 		this.blockItem(block);
+	}
+
+	public void blockFamilyWithChiseled(BlockFamily family) {
+		this.blockFamily(family);
+		this.block(family.get(Variant.CHISELED));
+	}
+
+	public void block(Block base, Block block) {
+		this.simpleBlock(block, this.models().cubeAll(name(block), blockTexture(base)));
+		this.blockItem(block);
+	}
+
+	public void copperBlocks(BlockFamily base, BlockFamily waxed) {
+		this.blockFamilyWithChiseled(base);
+
+		this.block(base.getBaseBlock(), waxed.getBaseBlock());
+		this.stairsBlock(base.getBaseBlock(), waxed.get(Variant.STAIRS));
+		this.slabBlock(base.getBaseBlock(), waxed.get(Variant.SLAB));
+		this.wallBlock(base.getBaseBlock(), waxed.get(Variant.WALL));
+		this.block(base.get(Variant.CHISELED), waxed.get(Variant.CHISELED));
 	}
 
 	public void waxedGeneratedItem(Block block, String type) {

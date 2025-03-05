@@ -4,6 +4,7 @@ import net.minecraft.client.model.SkullModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -29,8 +30,6 @@ public class PeeperHeadModel extends SkullModel {
 	@Override
 	public void setupAnim(float ageInTicks, float netHeadYaw, float headPitch) {
 		super.setupAnim(ageInTicks, netHeadYaw, headPitch);
-		if (ageInTicks < 0) {
-			this.head.yRot = ageInTicks;
-		}
+		this.head.yRot = ageInTicks + Mth.PI;
 	}
 }

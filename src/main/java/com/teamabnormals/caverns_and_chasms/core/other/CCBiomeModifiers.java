@@ -46,8 +46,13 @@ public class CCBiomeModifiers {
 
 		addFeature(context, "extra_silver_ore", CCBiomeTags.HAS_EXTRA_SILVER_ORE, Decoration.UNDERGROUND_ORES, CCPlacedFeatures.ORE_SILVER_EXTRA);
 		addFeature(context, "soul_silver_ore", CCBiomeTags.HAS_SOUL_SILVER_ORE, Decoration.UNDERGROUND_ORES, CCPlacedFeatures.ORE_SILVER_SOUL);
+
+		addFeature(context, "tin_ore", BiomeTags.IS_OVERWORLD, Decoration.UNDERGROUND_ORES, CCPlacedFeatures.ORE_TIN, CCPlacedFeatures.ORE_TIN_BURIED);
+
 		addFeature(context, "rocky_dirt", CCBiomeTags.HAS_ROCKY_DIRT, Decoration.UNDERGROUND_ORES, CCPlacedFeatures.ORE_ROCKY_DIRT);
 		addFeature(context, "fragile_stone", CCBiomeTags.HAS_FRAGILE_STONE, Decoration.UNDERGROUND_ORES, CCPlacedFeatures.ORE_FRAGILE_STONE, CCPlacedFeatures.ORE_FRAGILE_STONE_BURIED);
+
+		addFeature(context, "cave_growths", BiomeTags.IS_OVERWORLD, Decoration.VEGETAL_DECORATION, CCPlacedFeatures.PATCH_CAVE_GROWTHS, CCPlacedFeatures.PATCH_CAVE_GROWTHS_DEEP);
 
 		removeFeature(context, "gold_ore", BiomeTags.IS_OVERWORLD, Decoration.UNDERGROUND_ORES, OrePlacements.ORE_GOLD, OrePlacements.ORE_GOLD_LOWER);
 		removeFeature(context, "dirt_ore", CCBiomeTags.HAS_ROCKY_DIRT, Decoration.UNDERGROUND_ORES, OrePlacements.ORE_DIRT);

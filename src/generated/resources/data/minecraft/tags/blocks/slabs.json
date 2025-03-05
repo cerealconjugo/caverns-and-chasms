@@ -8,6 +8,7 @@
     "caverns_and_chasms:cobbled_deepslate_tile_slab",
     "caverns_and_chasms:spinel_brick_slab",
     "caverns_and_chasms:lapis_brick_slab",
+    "caverns_and_chasms:turquoise_tile_slab",
     "caverns_and_chasms:sanguine_tile_slab",
     "caverns_and_chasms:fortified_sanguine_tile_slab",
     "caverns_and_chasms:dripstone_shingle_slab",
@@ -17,6 +18,22 @@
     "caverns_and_chasms:polished_tuff_slab",
     "caverns_and_chasms:sugilite_slab",
     "caverns_and_chasms:polished_sugilite_slab",
-    "caverns_and_chasms:cut_amethyst_brick_slab"
+    "caverns_and_chasms:cut_amethyst_brick_slab",
+    "caverns_and_chasms:iron_brick_slab",
+    "caverns_and_chasms:tin_brick_slab",
+    "caverns_and_chasms:gold_brick_slab",
+    "caverns_and_chasms:silver_brick_slab",
+    "caverns_and_chasms:copper_brick_slab",
+    "caverns_and_chasms:exposed_copper_brick_slab",
+    "caverns_and_chasms:weathered_copper_brick_slab",
+    "caverns_and_chasms:oxidized_copper_brick_slab",
+    "caverns_and_chasms:waxed_copper_brick_slab",
+    "caverns_and_chasms:waxed_exposed_copper_brick_slab",
+    "caverns_and_chasms:waxed_weathered_copper_brick_slab",
+    "caverns_and_chasms:waxed_oxidized_copper_brick_slab",
+    "caverns_and_chasms:cassiterite_slab",
+    "caverns_and_chasms:polished_cassiterite_slab",
+    "caverns_and_chasms:cassiterite_brick_slab",
+    "caverns_and_chasms:smooth_cassiterite_slab"
   ]
 }

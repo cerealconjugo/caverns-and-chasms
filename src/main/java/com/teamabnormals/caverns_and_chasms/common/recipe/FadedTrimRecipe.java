@@ -1,12 +1,13 @@
 package com.teamabnormals.caverns_and_chasms.common.recipe;
 
-import com.teamabnormals.caverns_and_chasms.core.registry.CCItems;
+import com.teamabnormals.caverns_and_chasms.core.other.tags.CCItemTags;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCRecipes.CCRecipeSerializers;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -24,7 +25,7 @@ public class FadedTrimRecipe extends CustomRecipe {
 	private final boolean faded;
 
 	public FadedTrimRecipe(ResourceLocation p_273671_, CraftingBookCategory p_273056_) {
-		this(p_273671_, p_273056_, false);
+		this(p_273671_, p_273056_, true);
 	}
 
 	public FadedTrimRecipe(ResourceLocation p_273671_, CraftingBookCategory p_273056_, boolean faded) {
@@ -33,7 +34,7 @@ public class FadedTrimRecipe extends CustomRecipe {
 	}
 
 	public boolean matches(CraftingContainer container, Level level) {
-		Item item = this.faded ? CCItems.SPINEL.get() : Items.BLAZE_POWDER;
+		TagKey<Item> item = this.faded ? CCItemTags.FADED_TRIM_MODIFIERS : CCItemTags.EMISSIVE_TRIM_MODIFIERS;
 
 		if (!this.canCraftInDimensions(container.getWidth(), container.getHeight())) {
 			return false;
@@ -50,7 +51,7 @@ public class FadedTrimRecipe extends CustomRecipe {
 					}
 					case 1 -> {
 						CompoundTag tag = stack.getOrCreateTag();
-						if (!stack.is(ItemTags.TRIM_TEMPLATES) || this.faded ? tag.getBoolean("FadedTrim") : tag.getBoolean("EmissiveTrim")) {
+						if (!stack.is(ItemTags.TRIM_TEMPLATES) || tag.getBoolean(this.faded ? "FadedTrim" : "EmissiveTrim")) {
 							return false;
 						}
 					}

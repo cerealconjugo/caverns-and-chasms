@@ -4,25 +4,39 @@ import com.google.common.collect.ImmutableList;
 import com.teamabnormals.blueprint.core.data.server.BlueprintRecipeProvider;
 import com.teamabnormals.blueprint.core.other.tags.BlueprintItemTags;
 import com.teamabnormals.boatload.core.data.server.BoatloadRecipeProvider;
+import com.teamabnormals.caverns_and_chasms.common.block.FloodlightBlock;
+import com.teamabnormals.caverns_and_chasms.common.block.ToolboxBlock;
+import com.teamabnormals.caverns_and_chasms.common.item.CopperHornItem;
+import com.teamabnormals.caverns_and_chasms.common.recipe.CCShapedRecipeBuilder;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
+import com.teamabnormals.caverns_and_chasms.core.other.CCCompat;
+import com.teamabnormals.caverns_and_chasms.core.other.CCInstruments;
 import com.teamabnormals.caverns_and_chasms.core.other.tags.CCItemTags;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCItems;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCRecipes.CCRecipeSerializers;
 import com.teamabnormals.caverns_and_chasms.integration.boatload.CCBoatTypes;
+import com.teamabnormals.clayworks.core.data.server.ClayworksRecipeProvider;
 import com.teamabnormals.woodworks.core.data.server.WoodworksRecipeProvider;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.BlockFamily;
+import net.minecraft.data.BlockFamily.Variant;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.*;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.crafting.PartialNBTIngredient;
 import net.minecraftforge.common.crafting.conditions.ModLoadedCondition;
 import net.minecraftforge.common.crafting.conditions.NotCondition;
 import net.minecraftforge.common.crafting.conditions.TagEmptyCondition;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Consumer;
 
@@ -34,7 +48,9 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 	public static final ModLoadedCondition ENDERGETIC_LOADED = new ModLoadedCondition("endergetic");
 
 	private static final ImmutableList<ItemLike> SILVER_SMELTABLES = ImmutableList.of(SILVER_ORE.get(), DEEPSLATE_SILVER_ORE.get(), SOUL_SILVER_ORE.get(), CCItems.RAW_SILVER.get());
+	private static final ImmutableList<ItemLike> TIN_SMELTABLES = ImmutableList.of(TIN_ORE.get(), DEEPSLATE_TIN_ORE.get(), CASSITERITE_TIN_ORE.get(), CCItems.RAW_TIN.get());
 	private static final ImmutableList<ItemLike> SPINEL_SMELTABLES = ImmutableList.of(SPINEL_ORE.get(), DEEPSLATE_SPINEL_ORE.get());
+	private static final ImmutableList<ItemLike> TURQUOISE_SMELTABLES = ImmutableList.of(TURQUOISE_ORE.get(), DEEPSLATE_TURQUOISE_ORE.get());
 
 	public CCRecipeProvider(PackOutput output) {
 		super(CavernsAndChasms.MOD_ID, output);
@@ -43,21 +59,52 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 	@Override
 	public void buildRecipes(Consumer<FinishedRecipe> consumer) {
 		ShapedRecipeBuilder.shaped(TOOLS, Items.BUNDLE).define('R', Items.LEATHER).define('S', Items.STRING).pattern("S").pattern("R").unlockedBy("has_leather", has(Items.LEATHER)).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, getItemName(Items.BUNDLE)));
+		ShapedRecipeBuilder.shaped(DECORATIONS, Blocks.LODESTONE).define('S', Items.CHISELED_STONE_BRICKS).define('#', Tags.Items.INGOTS_IRON).pattern("SSS").pattern("S#S").pattern("SSS").unlockedBy("has_iron_ingot", has(Items.IRON_INGOT)).save(consumer);
 
-		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.RAIL, 3).define('#', Items.STICK).define('X', Items.IRON_NUGGET).pattern("X X").pattern("X#X").pattern("X X").unlockedBy("has_minecart", has(Items.MINECART)).save(consumer);
-		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.ACTIVATOR_RAIL, 3).define('#', Blocks.REDSTONE_TORCH).define('S', Items.STICK).define('X', Items.IRON_NUGGET).pattern("XSX").pattern("X#X").pattern("XSX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
-		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.DETECTOR_RAIL, 3).define('R', Items.REDSTONE).define('#', Blocks.STONE_PRESSURE_PLATE).define('X', Items.IRON_NUGGET).pattern("X X").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
-		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.POWERED_RAIL, 1).define('R', Items.REDSTONE).define('#', Items.STICK).define('X', Items.GOLD_NUGGET).pattern("X X").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
-		ShapedRecipeBuilder.shaped(TRANSPORTATION, SPIKED_RAIL.get(), 1).define('R', Items.REDSTONE).define('#', Items.STICK).define('X', CCItemTags.NUGGETS_SILVER).pattern("X X").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
-		ShapedRecipeBuilder.shaped(DECORATIONS, Blocks.CHAIN).define('#', Items.IRON_NUGGET).pattern("#").pattern("#").pattern("#").unlockedBy("has_iron_nugget", has(Items.IRON_NUGGET)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, COPPER_RAIL.get(), 3).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.NUGGETS_COPPER).pattern("X X").pattern("X#X").pattern("X X").unlockedBy("has_minecart", has(Items.MINECART)).save(consumer);
 
-		ShapedRecipeBuilder.shaped(MISC, CCItems.BEJEWELED_PEARL.get(), 2).define('P', Items.ENDER_PEARL).define('S', CCItems.SPINEL.get()).pattern(" S ").pattern("SPS").pattern(" S ").unlockedBy("has_spinel", has(CCItems.SPINEL.get())).unlockedBy("has_ender_pearl", has(Items.ENDER_PEARL)).save(consumer);
-		ShapedRecipeBuilder.shaped(FOOD, CCItems.BEJEWELED_APPLE.get(), 2).define('A', Items.GOLDEN_APPLE).define('S', CCItems.SPINEL.get()).pattern("SSS").pattern("SAS").pattern("SSS").unlockedBy("has_spinel", has(CCItems.SPINEL.get())).unlockedBy("has_golden_apple", has(Items.GOLDEN_APPLE)).save(consumer);
-		ShapedRecipeBuilder.shaped(REDSTONE, TMT.get(), 4).define('T', Items.TNT).define('S', CCItems.SPINEL.get()).pattern(" S ").pattern("STS").pattern(" S ").unlockedBy("has_spinel", has(CCItems.SPINEL.get())).unlockedBy("has_tnt", has(Items.TNT)).save(consumer);
-		ShapelessRecipeBuilder.shapeless(COMBAT, CCItems.BLUNT_ARROW.get(), 4).requires(Items.ARROW).requires(CCItems.SPINEL.get()).unlockedBy("has_spinel", has(CCItems.SPINEL.get())).save(consumer);
-		ShapedRecipeBuilder.shaped(COMBAT, CCItems.LARGE_ARROW.get(), 4).define('#', Items.STICK).define('X', CCItemTags.INGOTS_SILVER).define('Y', Items.FEATHER).pattern("X").pattern("#").pattern("Y").unlockedBy("has_feather", has(Items.FEATHER)).unlockedBy("has_silver", has(CCItemTags.INGOTS_SILVER)).save(consumer);
-		ShapedRecipeBuilder.shaped(DECORATIONS, DISMANTLING_TABLE.get()).define('T', Items.SMITHING_TABLE).define('S', CCItems.SPINEL.get()).pattern("SSS").pattern("STS").pattern("SSS").unlockedBy("has_spinel", has(CCItems.SPINEL.get())).unlockedBy("has_smithing_table", has(Items.SMITHING_TABLE)).save(consumer);
+		copperHornRecipe(consumer, Instruments.PONDER_GOAT_HORN, CCInstruments.GREAT_SKY_FALLING_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.SING_GOAT_HORN, CCInstruments.OLD_HYMN_RESTING_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.SEEK_GOAT_HORN, CCInstruments.PURE_WATER_DESIRE_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.FEEL_GOAT_HORN, CCInstruments.HUMBLE_FIRE_MEMORY_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.ADMIRE_GOAT_HORN, CCInstruments.DRY_URGE_ANGER_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.CALL_GOAT_HORN, CCInstruments.CLEAR_TEMPER_JOURNEY_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.YEARN_GOAT_HORN, CCInstruments.FRESH_NEST_THOUGHT_COPPER_HORN);
+		copperHornRecipe(consumer, Instruments.DREAM_GOAT_HORN, CCInstruments.SECRET_LAKE_TEAR_COPPER_HORN);
+		copperHornRecipe(consumer, CCInstruments.FLY_GOAT_HORN.getKey(), CCInstruments.FEARLESS_RIVER_GIFT_COPPER_HORN);
+		copperHornRecipe(consumer, CCInstruments.RESIST_GOAT_HORN.getKey(), CCInstruments.SWEET_MOON_LOVE_COPPER_HORN);
 
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.RAIL, 3).define('#', Tags.Items.RODS_WOODEN).define('X', Tags.Items.NUGGETS_IRON).pattern("X X").pattern("X#X").pattern("X X").unlockedBy("has_minecart", has(Items.MINECART)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.ACTIVATOR_RAIL).define('#', Blocks.REDSTONE_TORCH).define('S', Tags.Items.RODS_WOODEN).define('X', Tags.Items.NUGGETS_IRON).pattern("XSX").pattern("X#X").pattern("XSX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.DETECTOR_RAIL).define('R', Items.REDSTONE).define('#', Blocks.STONE_PRESSURE_PLATE).define('X', Tags.Items.NUGGETS_IRON).pattern("X X").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, Blocks.POWERED_RAIL).define('R', Items.REDSTONE).define('#', Tags.Items.RODS_WOODEN).define('X', Tags.Items.NUGGETS_GOLD).pattern("X X").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, SPIKED_RAIL.get()).define('R', Items.REDSTONE).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.NUGGETS_SILVER).pattern("X X").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, SLAUGHTER_RAIL.get()).define('R', Items.REDSTONE).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.NUGGETS_SILVER).define('Y', CCItemTags.INGOTS_SILVER).pattern("XYX").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(TRANSPORTATION, HALT_RAIL.get()).define('R', Items.REDSTONE).define('#', Tags.Items.RODS_WOODEN).define('X', Tags.Items.NUGGETS_IRON).define('Y', Tags.Items.INGOTS_IRON).pattern("XYX").pattern("X#X").pattern("XRX").unlockedBy("has_rail", has(Blocks.RAIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, Blocks.CHAIN).define('#', Tags.Items.NUGGETS_IRON).pattern("#").pattern("#").pattern("#").unlockedBy("has_iron_nugget", has(Tags.Items.NUGGETS_IRON)).save(consumer);
+
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, FRAGILE_STONE.get(), 4).define('D', Blocks.STONE).define('G', Blocks.GRAVEL).pattern("DG").pattern("GD").unlockedBy("has_stone", has(Blocks.STONE)).save(consumer);
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, FRAGILE_DEEPSLATE.get(), 4).define('D', Blocks.DEEPSLATE).define('G', Blocks.GRAVEL).pattern("DG").pattern("GD").unlockedBy("has_deepslate", has(Blocks.DEEPSLATE)).save(consumer);
+
+		ShapedRecipeBuilder.shaped(MISC, CCItems.BEJEWELED_PEARL.get(), 2).define('P', Items.ENDER_PEARL).define('S', CCItemTags.GEMS_SPINEL).pattern(" S ").pattern("SPS").pattern(" S ").unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).unlockedBy("has_ender_pearl", has(Items.ENDER_PEARL)).save(consumer);
+		ShapedRecipeBuilder.shaped(FOOD, CCItems.BEJEWELED_APPLE.get(), 2).define('A', Items.GOLDEN_APPLE).define('S', CCItemTags.GEMS_SPINEL).pattern("SSS").pattern("SAS").pattern("SSS").unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).unlockedBy("has_golden_apple", has(Items.GOLDEN_APPLE)).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, TMT.get(), 4).define('T', Items.TNT).define('S', CCItemTags.GEMS_SPINEL).pattern(" S ").pattern("STS").pattern(" S ").unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).unlockedBy("has_tnt", has(Items.TNT)).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, SPLURTER.get()).define('T', CCItems.TIN_INGOT.get()).define('D', Items.DROPPER).pattern("TTT").pattern("TDT").pattern("TTT").unlockedBy("has_tin_ingot", has(CCItems.TIN_INGOT.get())).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, SCATTERER.get()).define('T', CCItems.TIN_INGOT.get()).define('D', Items.DISPENSER).pattern("TTT").pattern("TDT").pattern("TTT").unlockedBy("has_tin_ingot", has(CCItems.TIN_INGOT.get())).save(consumer);
+		ShapelessRecipeBuilder.shapeless(TRANSPORTATION, CCItems.TMT_MINECART.get()).requires(TMT.get()).requires(Items.MINECART).unlockedBy("has_minecart", has(Items.MINECART)).save(consumer);
+		ShapelessRecipeBuilder.shapeless(COMBAT, CCItems.BLUNT_ARROW.get(), 4).requires(Items.ARROW).requires(CCItemTags.GEMS_SPINEL).unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).save(consumer);
+		ShapedRecipeBuilder.shaped(COMBAT, CCItems.LARGE_ARROW.get(), 4).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.INGOTS_SILVER).define('Y', Items.FEATHER).pattern("X").pattern("#").pattern("Y").unlockedBy("has_feather", has(Items.FEATHER)).unlockedBy("has_silver", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(COMBAT, CCItems.FOIL.get()).define('#', Tags.Items.RODS_WOODEN).define('S', CCItemTags.INGOTS_SILVER).define('L', Items.LEATHER).pattern("  L").pattern("SL ").pattern("#S ").unlockedBy("has_silver", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+
+		ShapedRecipeBuilder.shaped(DECORATIONS, DISMANTLING_TABLE.get()).define('T', Items.SMITHING_TABLE).define('S', CCItemTags.GEMS_SPINEL).pattern("SSS").pattern("STS").pattern("SSS").unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).unlockedBy("has_smithing_table", has(Items.SMITHING_TABLE)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, BEJEWELED_ANVIL.get(), 2).define('T', Items.ANVIL).define('S', CCItemTags.GEMS_SPINEL).pattern("SSS").pattern("STS").pattern("SSS").unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).unlockedBy("has_anvil", has(Items.ANVIL)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, ATONING_TABLE.get()).define('T', Items.ENCHANTING_TABLE).define('S', CCItemTags.GEMS_SPINEL).pattern("SSS").pattern("STS").pattern("SSS").unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).unlockedBy("has_enchanting_table", has(Items.ENCHANTING_TABLE)).save(consumer);
+
+		ShapelessRecipeBuilder.shapeless(FOOD, CCItems.CAVIAR.get()).requires(Items.SALMON_BUCKET).requires(CCItems.TURQUOISE.get()).unlockedBy("has_turquoise", has(CCItems.TURQUOISE.get())).save(consumer);
+		ShapelessRecipeBuilder.shapeless(TOOLS, CCItems.MONOCLE.get()).requires(Items.SPYGLASS).requires(CCItems.TURQUOISE.get()).unlockedBy("has_turquoise", has(CCItems.TURQUOISE.get())).save(consumer);
+		conversionRecipe(consumer, Items.CYAN_DYE, CCItems.TURQUOISE.get(), "cyan_dye", 16);
+
+		SpecialRecipeBuilder.special(CCRecipeSerializers.MUSIC_DISC_COPYING.get()).save(consumer, CavernsAndChasms.MOD_ID + ":music_disc_copying");
 		SpecialRecipeBuilder.special(CCRecipeSerializers.TOOLBOX_WAXING.get()).save(consumer, CavernsAndChasms.MOD_ID + ":toolbox_waxing");
 		ShapedRecipeBuilder.shaped(DECORATIONS, TOOLBOX.get()).define('C', Blocks.COPPER_BLOCK).define('I', Tags.Items.INGOTS_COPPER).pattern(" I ").pattern("I I").pattern("CCC").unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
 		ShapedRecipeBuilder.shaped(TOOLS, CCItems.TUNING_FORK.get()).define('#', Tags.Items.INGOTS_COPPER).pattern(" # ").pattern(" ##").pattern("#  ").unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
@@ -67,20 +114,17 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		mimingRecipe(consumer, MISC, Items.MUSIC_DISC_11, CCItems.MUSIC_DISC_EPILOGUE.get());
 		mimingRecipe(consumer, MISC, Items.MOJANG_BANNER_PATTERN, CCItems.ABNORMALS_BANNER_PATTERN.get());
 		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, ROCKY_DIRT.get(), 4).define('D', Blocks.DIRT).define('C', Blocks.COBBLESTONE).pattern("DC").pattern("CD").unlockedBy("has_dirt", has(Blocks.DIRT)).unlockedBy("has_cobblestone", has(Blocks.COBBLESTONE)).save(consumer);
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, FLINT_BLOCK.get()).define('#', Items.FLINT).pattern("##").pattern("##").unlockedBy("has_flint", has(Items.FLINT)).save(consumer);
 		ShapelessRecipeBuilder.shapeless(BUILDING_BLOCKS, Blocks.ROOTED_DIRT).requires(Blocks.DIRT).requires(Blocks.HANGING_ROOTS).unlockedBy("has_hanging_roots", has(Blocks.HANGING_ROOTS)).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, getItemName(Blocks.ROOTED_DIRT)));
 
-		ShapedRecipeBuilder.shaped(DECORATIONS, LAVA_LAMP.get()).define('G', Tags.Items.INGOTS_GOLD).define('B', BlueprintItemTags.BUCKETS_LAVA).pattern("GGG").pattern("GBG").pattern("GGG").unlockedBy("has_gold_ingot", has(Tags.Items.INGOTS_GOLD)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, LAVA_LAMP.get()).define('G', Tags.Items.INGOTS_GOLD).define('B', BlueprintItemTags.BUCKETS_LAVA).pattern("GGG").pattern(" B ").pattern("GGG").unlockedBy("has_gold_ingot", has(Tags.Items.INGOTS_GOLD)).save(consumer);
 
 		ShapedRecipeBuilder.shaped(DECORATIONS, FLOODLIGHT.get()).define('C', Tags.Items.INGOTS_COPPER).define('A', Items.AMETHYST_SHARD).pattern(" C ").pattern("CCC").pattern(" A ").unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
-		waxRecipe(consumer, DECORATIONS, FLOODLIGHT.get(), WAXED_FLOODLIGHT.get());
-		waxRecipe(consumer, DECORATIONS, EXPOSED_FLOODLIGHT.get(), WAXED_EXPOSED_FLOODLIGHT.get());
-		waxRecipe(consumer, DECORATIONS, WEATHERED_FLOODLIGHT.get(), WAXED_WEATHERED_FLOODLIGHT.get());
-		waxRecipe(consumer, DECORATIONS, OXIDIZED_FLOODLIGHT.get(), WAXED_OXIDIZED_FLOODLIGHT.get());
 //		ShapedRecipeBuilder.shaped(INDUCTOR.get()).define('C', Tags.Items.INGOTS_COPPER).define('I', Items.IRON_BLOCK).define('R', Items.REDSTONE).pattern("CIC").pattern("CRC").pattern("CIC").unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
 
-		ShapedRecipeBuilder.shaped(DECORATIONS, CUPRIC_TORCH.get(), 4).define('X', Ingredient.of(Items.COAL, Items.CHARCOAL)).define('#', Items.STICK).define('C', CCItemTags.CUPRIC_FIRE_BASE_BLOCKS).pattern("X").pattern("#").pattern("C").unlockedBy("has_copper", has(CCItemTags.CUPRIC_FIRE_BASE_BLOCKS)).save(consumer);
-		ShapedRecipeBuilder.shaped(DECORATIONS, CUPRIC_CAMPFIRE.get()).define('L', ItemTags.LOGS).define('S', Items.STICK).define('#', CCItemTags.CUPRIC_FIRE_BASE_BLOCKS).pattern(" S ").pattern("S#S").pattern("LLL").unlockedBy("has_stick", has(Items.STICK)).unlockedBy("has_copper", has(CCItemTags.CUPRIC_FIRE_BASE_BLOCKS)).save(consumer);
-		ShapedRecipeBuilder.shaped(DECORATIONS, CUPRIC_LANTERN.get()).define('#', CUPRIC_TORCH.get()).define('X', Items.IRON_NUGGET).pattern("XXX").pattern("X#X").pattern("XXX").unlockedBy("has_copper", has(CUPRIC_TORCH.get())).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, CUPRIC_TORCH.get(), 4).define('X', Ingredient.of(Items.COAL, Items.CHARCOAL)).define('#', Tags.Items.RODS_WOODEN).define('C', CCItemTags.CUPRIC_FIRE_BASE_BLOCKS).pattern("X").pattern("#").pattern("C").unlockedBy("has_copper", has(CCItemTags.CUPRIC_FIRE_BASE_BLOCKS)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, CUPRIC_CAMPFIRE.get()).define('L', ItemTags.LOGS).define('S', Tags.Items.RODS_WOODEN).define('#', CCItemTags.CUPRIC_FIRE_BASE_BLOCKS).pattern(" S ").pattern("S#S").pattern("LLL").unlockedBy("has_stick", has(Tags.Items.RODS_WOODEN)).unlockedBy("has_copper", has(CCItemTags.CUPRIC_FIRE_BASE_BLOCKS)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, CUPRIC_LANTERN.get()).define('#', CUPRIC_TORCH.get()).define('X', Tags.Items.NUGGETS_IRON).pattern("XXX").pattern("X#X").pattern("XXX").unlockedBy("has_copper", has(CUPRIC_TORCH.get())).save(consumer);
 
 		ShapedRecipeBuilder.shaped(DECORATIONS, BRAZIER.get()).define('#', ItemTags.COALS).define('S', CCItemTags.INGOTS_SILVER).pattern("S#S").pattern(" S ").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).unlockedBy("has_coal", has(ItemTags.COALS)).save(consumer);
 		ShapedRecipeBuilder.shaped(DECORATIONS, SOUL_BRAZIER.get()).define('#', ItemTags.SOUL_FIRE_BASE_BLOCKS).define('S', CCItemTags.INGOTS_SILVER).pattern("S#S").pattern(" S ").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).unlockedBy("has_soul_sand", has(ItemTags.SOUL_FIRE_BASE_BLOCKS)).save(consumer);
@@ -88,53 +132,60 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		conditionalRecipe(consumer, ENDERGETIC_LOADED, DECORATIONS, ShapedRecipeBuilder.shaped(DECORATIONS, ENDER_BRAZIER.get()).define('#', CCItemTags.ENDER_FIRE_BASE_BLOCKS).define('S', CCItemTags.INGOTS_SILVER).pattern("S#S").pattern(" S ").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).unlockedBy("has_end_stone", has(CCItemTags.ENDER_FIRE_BASE_BLOCKS)));
 
 		ShapedRecipeBuilder.shaped(DECORATIONS, COPPER_BARS.get(), 16).define('#', Tags.Items.INGOTS_COPPER).pattern("###").pattern("###").unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
-		waxRecipe(consumer, DECORATIONS, COPPER_BARS.get(), WAXED_COPPER_BARS.get());
-		waxRecipe(consumer, DECORATIONS, EXPOSED_COPPER_BARS.get(), WAXED_EXPOSED_COPPER_BARS.get());
-		waxRecipe(consumer, DECORATIONS, WEATHERED_COPPER_BARS.get(), WAXED_WEATHERED_COPPER_BARS.get());
-		waxRecipe(consumer, DECORATIONS, OXIDIZED_COPPER_BARS.get(), WAXED_OXIDIZED_COPPER_BARS.get());
-
 		ShapelessRecipeBuilder.shapeless(REDSTONE, COPPER_BUTTON.get()).requires(ItemTags.WOODEN_BUTTONS).requires(Tags.Items.INGOTS_COPPER).unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
-		waxRecipe(consumer, REDSTONE, COPPER_BUTTON.get(), WAXED_COPPER_BUTTON.get());
-		waxRecipe(consumer, REDSTONE, EXPOSED_COPPER_BUTTON.get(), WAXED_EXPOSED_COPPER_BUTTON.get());
-		waxRecipe(consumer, REDSTONE, WEATHERED_COPPER_BUTTON.get(), WAXED_WEATHERED_COPPER_BUTTON.get());
-		waxRecipe(consumer, REDSTONE, OXIDIZED_COPPER_BUTTON.get(), WAXED_OXIDIZED_COPPER_BUTTON.get());
-
-		waxRecipe(consumer, DECORATIONS, Blocks.LIGHTNING_ROD, WAXED_LIGHTNING_ROD.get());
-		waxRecipe(consumer, DECORATIONS, EXPOSED_LIGHTNING_ROD.get(), WAXED_EXPOSED_LIGHTNING_ROD.get());
-		waxRecipe(consumer, DECORATIONS, WEATHERED_LIGHTNING_ROD.get(), WAXED_WEATHERED_LIGHTNING_ROD.get());
-		waxRecipe(consumer, DECORATIONS, OXIDIZED_LIGHTNING_ROD.get(), WAXED_OXIDIZED_LIGHTNING_ROD.get());
 
 		storageRecipes(consumer, MISC, CCItems.SPINEL.get(), BUILDING_BLOCKS, SPINEL_BLOCK.get());
 		storageRecipes(consumer, MISC, CCItems.RAW_SILVER.get(), BUILDING_BLOCKS, RAW_SILVER_BLOCK.get());
+		storageRecipes(consumer, MISC, CCItems.RAW_TIN.get(), BUILDING_BLOCKS, RAW_TIN_BLOCK.get());
+		storageRecipes(consumer, MISC, CCItems.ZIRCONIA.get(), BUILDING_BLOCKS, ZIRCONIA_BLOCK.get());
+		storageRecipes(consumer, MISC, CCItems.TURQUOISE.get(), BUILDING_BLOCKS, TURQUOISE_BLOCK.get());
 		storageRecipes(consumer, FOOD, Items.ROTTEN_FLESH, BUILDING_BLOCKS, ROTTEN_FLESH_BLOCK.get());
 		storageRecipesWithCustomUnpacking(consumer, MISC, CCItems.SILVER_INGOT.get(), BUILDING_BLOCKS, SILVER_BLOCK.get(), "silver_ingot_from_silver_block", "silver_ingot");
+		storageRecipesWithCustomUnpacking(consumer, MISC, CCItems.TIN_INGOT.get(), BUILDING_BLOCKS, TIN_BLOCK.get(), "tin_ingot_from_tin_block", "tin_ingot");
 		storageRecipesWithCustomPacking(consumer, MISC, CCItems.SILVER_NUGGET.get(), MISC, CCItems.SILVER_INGOT.get(), "silver_ingot_from_nuggets", "silver_ingot");
+		storageRecipesWithCustomPacking(consumer, MISC, CCItems.TIN_NUGGET.get(), MISC, CCItems.TIN_INGOT.get(), "tin_ingot_from_nuggets", "tin_ingot");
 		storageRecipesWithCustomPacking(consumer, MISC, CCItems.COPPER_NUGGET.get(), MISC, Items.COPPER_INGOT, "copper_ingot_from_nuggets", "copper_ingot");
 
 		oreRecipes(consumer, SILVER_SMELTABLES, MISC, CCItems.SILVER_INGOT.get(), 1.0F, 200, 1.0F, 100, "silver_ingot");
+		oreRecipes(consumer, TIN_SMELTABLES, MISC, CCItems.TIN_INGOT.get(), 0.0F, 200, 0.0F, 100, "tin_ingot");
 		oreRecipes(consumer, SPINEL_SMELTABLES, MISC, CCItems.SPINEL.get(), 0.2F, 200, 0.2F, 100, "spinel");
+		oreRecipes(consumer, TURQUOISE_SMELTABLES, MISC, CCItems.TURQUOISE.get(), 1.0F, 200, 1.0F, 100, "turquoise");
 
-		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_AXE.get()).define('#', Items.STICK).define('X', CCItemTags.INGOTS_SILVER).pattern("XX").pattern("X#").pattern(" #").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_AXE.get()).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.INGOTS_SILVER).pattern("XX").pattern("X#").pattern(" #").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SILVER_BOOTS.get()).define('X', CCItemTags.INGOTS_SILVER).pattern("X X").pattern("X X").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SILVER_CHESTPLATE.get()).define('X', CCItemTags.INGOTS_SILVER).pattern("X X").pattern("XXX").pattern("XXX").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SILVER_HELMET.get()).define('X', CCItemTags.INGOTS_SILVER).pattern("XXX").pattern("X X").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
-		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_HOE.get()).define('#', Items.STICK).define('X', CCItemTags.INGOTS_SILVER).pattern("XX").pattern(" #").pattern(" #").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_HOE.get()).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.INGOTS_SILVER).pattern("XX").pattern(" #").pattern(" #").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SILVER_LEGGINGS.get()).define('X', CCItemTags.INGOTS_SILVER).pattern("XXX").pattern("X X").pattern("X X").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
-		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_PICKAXE.get()).define('#', Items.STICK).define('X', CCItemTags.INGOTS_SILVER).pattern("XXX").pattern(" # ").pattern(" # ").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
-		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_SHOVEL.get()).define('#', Items.STICK).define('X', CCItemTags.INGOTS_SILVER).pattern("X").pattern("#").pattern("#").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
-		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SILVER_SWORD.get()).define('#', Items.STICK).define('X', CCItemTags.INGOTS_SILVER).pattern("X").pattern("X").pattern("#").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_PICKAXE.get()).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.INGOTS_SILVER).pattern("XXX").pattern(" # ").pattern(" # ").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(TOOLS, CCItems.SILVER_SHOVEL.get()).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.INGOTS_SILVER).pattern("X").pattern("#").pattern("#").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SILVER_SWORD.get()).define('#', Tags.Items.RODS_WOODEN).define('X', CCItemTags.INGOTS_SILVER).pattern("X").pattern("X").pattern("#").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		pressurePlateBuilder(REDSTONE, MEDIUM_WEIGHTED_PRESSURE_PLATE.get(), Ingredient.of(CCItemTags.INGOTS_SILVER)).unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		ShapedRecipeBuilder.shaped(DECORATIONS, SILVER_BARS.get(), 16).define('#', CCItemTags.INGOTS_SILVER).pattern("###").pattern("###").unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		SimpleCookingRecipeBuilder.smelting(Ingredient.of(CCItems.SILVER_PICKAXE.get(), CCItems.SILVER_SHOVEL.get(), CCItems.SILVER_AXE.get(), CCItems.SILVER_HOE.get(), CCItems.SILVER_SWORD.get(), CCItems.SILVER_HELMET.get(), CCItems.SILVER_CHESTPLATE.get(), CCItems.SILVER_LEGGINGS.get(), CCItems.SILVER_BOOTS.get(), CCItems.SILVER_HORSE_ARMOR.get()), MISC, CCItems.SILVER_NUGGET.get(), 0.1F, 200).unlockedBy("has_silver_pickaxe", has(CCItems.SILVER_PICKAXE.get())).unlockedBy("has_silver_shovel", has(CCItems.SILVER_SHOVEL.get())).unlockedBy("has_silver_axe", has(CCItems.SILVER_AXE.get())).unlockedBy("has_silver_hoe", has(CCItems.SILVER_HOE.get())).unlockedBy("has_silver_sword", has(CCItems.SILVER_SWORD.get())).unlockedBy("has_silver_helmet", has(CCItems.SILVER_HELMET.get())).unlockedBy("has_silver_chestplate", has(CCItems.SILVER_CHESTPLATE.get())).unlockedBy("has_silver_leggings", has(CCItems.SILVER_LEGGINGS.get())).unlockedBy("has_silver_boots", has(CCItems.SILVER_BOOTS.get())).unlockedBy("has_silver_horse_armor", has(CCItems.SILVER_HORSE_ARMOR.get())).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, getSmeltingRecipeName(CCItems.SILVER_NUGGET.get())));
 		SimpleCookingRecipeBuilder.blasting(Ingredient.of(CCItems.SILVER_PICKAXE.get(), CCItems.SILVER_SHOVEL.get(), CCItems.SILVER_AXE.get(), CCItems.SILVER_HOE.get(), CCItems.SILVER_SWORD.get(), CCItems.SILVER_HELMET.get(), CCItems.SILVER_CHESTPLATE.get(), CCItems.SILVER_LEGGINGS.get(), CCItems.SILVER_BOOTS.get(), CCItems.SILVER_HORSE_ARMOR.get()), MISC, CCItems.SILVER_NUGGET.get(), 0.1F, 100).unlockedBy("has_silver_pickaxe", has(CCItems.SILVER_PICKAXE.get())).unlockedBy("has_silver_shovel", has(CCItems.SILVER_SHOVEL.get())).unlockedBy("has_silver_axe", has(CCItems.SILVER_AXE.get())).unlockedBy("has_silver_hoe", has(CCItems.SILVER_HOE.get())).unlockedBy("has_silver_sword", has(CCItems.SILVER_SWORD.get())).unlockedBy("has_silver_helmet", has(CCItems.SILVER_HELMET.get())).unlockedBy("has_silver_chestplate", has(CCItems.SILVER_CHESTPLATE.get())).unlockedBy("has_silver_leggings", has(CCItems.SILVER_LEGGINGS.get())).unlockedBy("has_silver_boots", has(CCItems.SILVER_BOOTS.get())).unlockedBy("has_silver_horse_armor", has(CCItems.SILVER_HORSE_ARMOR.get())).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, getBlastingRecipeName(CCItems.SILVER_NUGGET.get())));
-		ShapedRecipeBuilder.shaped(COMBAT, CCItems.KUNAI.get()).define('#', Tags.Items.RODS_WOODEN).define('S', CCItemTags.NUGGETS_SILVER).pattern(" S").pattern("# ").unlockedBy("has_silver_nugget", has(CCItemTags.NUGGETS_SILVER)).save(consumer);
+		ShapedRecipeBuilder.shaped(COMBAT, CCItems.KUNAI.get(), 3).define('#', CCItemTags.NUGGETS_SILVER).define('S', CCItemTags.INGOTS_SILVER).pattern(" S").pattern("# ").unlockedBy("has_silver_nugget", has(CCItemTags.NUGGETS_SILVER)).save(consumer);
 
-		ShapedRecipeBuilder.shaped(RecipeCategory.BREWING, Blocks.BREWING_STAND).define('B', Items.BLAZE_ROD).define('#', CCItemTags.INGOTS_SILVER).pattern(" B ").pattern("###").unlockedBy("has_blaze_rod", has(Items.BLAZE_ROD)).save(consumer);
+		ShapedRecipeBuilder.shaped(BREWING, Blocks.BREWING_STAND).define('B', Items.BLAZE_ROD).define('#', CCItemTags.INGOTS_SILVER).pattern(" B ").pattern("###").unlockedBy("has_blaze_rod", has(Items.BLAZE_ROD)).save(consumer);
 
 		ShapedRecipeBuilder.shaped(DECORATIONS, GOLDEN_BARS.get(), 16).define('#', Items.GOLD_INGOT).pattern("###").pattern("###").unlockedBy("has_gold_ingot", has(Items.GOLD_INGOT)).save(consumer);
 		ShapedRecipeBuilder.shaped(MISC, CCItems.GOLDEN_BUCKET.get()).define('#', Blocks.GOLD_BLOCK).pattern("# #").pattern(" # ").unlockedBy("has_gold_block", has(Blocks.GOLD_BLOCK)).save(consumer);
 		conditionalRecipe(consumer, new NotCondition(new ModLoadedCondition("environmental")), FOOD, ShapedRecipeBuilder.shaped(FOOD, Blocks.CAKE).define('A', CCItems.GOLDEN_MILK_BUCKET.get()).define('B', Items.SUGAR).define('C', Items.WHEAT).define('E', Items.EGG).pattern("AAA").pattern("BEB").pattern("CCC").unlockedBy("has_egg", has(Items.EGG)), new ResourceLocation(CavernsAndChasms.MOD_ID, getSimpleRecipeName(Blocks.CAKE)));
 		conditionalRecipe(consumer, new NotCondition(new TagEmptyCondition(CCItemTags.BOTTLES_MILK.location())), MISC, ShapelessRecipeBuilder.shapeless(MISC, CCItems.GOLDEN_MILK_BUCKET.get()).requires(CCItems.GOLDEN_BUCKET.get()).requires(Ingredient.of(CCItemTags.BOTTLES_MILK), 3).unlockedBy("has_milk_bottle", has(CCItemTags.BOTTLES_MILK)));
+
+		ShapedRecipeBuilder.shaped(DECORATIONS, TIN_BARS.get(), 16).define('#', CCItemTags.INGOTS_TIN).pattern("###").pattern("###").unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		pressurePlateBuilder(REDSTONE, HOLD_PLATE.get(), Ingredient.of(CCItemTags.INGOTS_TIN)).unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapelessRecipeBuilder.shapeless(REDSTONE, HOLD_BUTTON.get()).requires(ItemTags.WOODEN_BUTTONS).requires(CCItemTags.INGOTS_TIN).unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, DIMMER.get()).define('T', CCItemTags.INGOTS_TIN).define('N', CCItemTags.NUGGETS_TIN).define('R', Items.REDSTONE_TORCH).pattern("NNN").pattern("NRN").pattern(" T ").unlockedBy("has_tin_nuggets", has(CCItemTags.NUGGETS_TIN)).unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, BOUNCER.get()).define('T', CCItemTags.STORAGE_BLOCKS_TIN).define('S', Items.SLIME_BALL).define('R', Tags.Items.DUSTS_REDSTONE).pattern("SRS").pattern("STS").pattern("SRS").unlockedBy("has_slime_ball", has(Items.SLIME_BALL)).unlockedBy("has_tin", has(CCItemTags.STORAGE_BLOCKS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, HOOP.get()).define('T', CCItemTags.INGOTS_TIN).define('Q', Items.QUARTZ).pattern("TTT").pattern("TQT").pattern("TTT").unlockedBy("has_quartz", has(Items.QUARTZ)).unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, STORAGE_DUCT.get()).define('I', CCItemTags.INGOTS_TIN).define('B', CCItemTags.STORAGE_BLOCKS_TIN).pattern("I I").pattern("B B").pattern("I I").unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, FLOAT_GLASS.get(), 2).define('G', Blocks.GLASS).define('S', Items.AMETHYST_SHARD).define('T', CCItemTags.INGOTS_TIN).pattern(" T ").pattern("SGS").pattern(" T ").unlockedBy("has_amethyst_shard", has(Items.AMETHYST_SHARD)).unlockedBy("has_tin", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(DECORATIONS, FLOAT_GLASS_PANE.get(), 16).define('#', FLOAT_GLASS.get()).pattern("###").pattern("###").unlockedBy("has_float_glass", has(FLOAT_GLASS.get())).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, ROLLER_DOOR.get()).define('T', CCItemTags.INGOTS_TIN).pattern("TT").pattern("TT").unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+
+		ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, RESISTOR.get()).define('#', Blocks.REDSTONE_TORCH).define('X', Items.REDSTONE).define('I', CCItemTags.INGOTS_TIN).pattern("#X#").pattern("III").unlockedBy("has_redstone_torch", has(Blocks.REDSTONE_TORCH)).save(consumer);
+		ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, REFRACTOR.get()).define('#', Blocks.REDSTONE_TORCH).define('X', Items.AMETHYST_BLOCK).define('I', CCItemTags.INGOTS_TIN).pattern(" # ").pattern("#X#").pattern("III").unlockedBy("has_amethyst", has(Items.AMETHYST_BLOCK)).save(consumer);
 
 		ShapelessRecipeBuilder.shapeless(MISC, CCItems.LIVING_FLESH.get(), 2).requires(Items.ROTTEN_FLESH, 3).requires(Ingredient.of(CCItemTags.INGOTS_SILVER), 2).requires(Items.GHAST_TEAR, 2).unlockedBy("has_silver_ingot", has(CCItemTags.INGOTS_SILVER)).save(consumer);
 		ShapedRecipeBuilder.shaped(COMBAT, CCItems.SANGUINE_HELMET.get()).define('X', CCItems.LIVING_FLESH.get()).pattern("XXX").pattern("X X").unlockedBy("has_living_flesh", has(CCItems.LIVING_FLESH.get())).save(consumer);
@@ -179,14 +230,44 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		stonecutterRecipe(consumer, DECORATIONS, LAPIS_LAZULI_BRICK_WALL.get(), LAPIS_LAZULI_BRICKS.get());
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, LAPIS_LAZULI_PILLAR.get(), LAPIS_LAZULI_BRICKS.get());
 
-		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, SPINEL_BRICKS.get()).define('#', CCItems.SPINEL.get()).pattern("##").pattern("##").unlockedBy(getHasName(CCItems.SPINEL.get()), has(CCItems.SPINEL.get())).save(consumer);
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, SPINEL_BRICKS.get()).define('#', CCItemTags.GEMS_SPINEL).pattern("##").pattern("##").unlockedBy(getHasName(CCItems.SPINEL.get()), has(CCItemTags.GEMS_SPINEL)).save(consumer);
 		generateRecipes(consumer, SPINEL_BRICKS_FAMILY);
 		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, SPINEL_PILLAR.get(), 2).define('#', SPINEL_BRICKS.get()).pattern("#").pattern("#").unlockedBy(getHasName(SPINEL_BRICKS.get()), has(SPINEL_BRICKS.get())).unlockedBy(getHasName(SPINEL_PILLAR.get()), has(SPINEL_PILLAR.get())).save(consumer);
-		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, SPINEL_LAMP.get()).define('#', CCItems.SPINEL.get()).define('G', Blocks.GLOWSTONE).pattern(" # ").pattern("#G#").pattern(" # ").unlockedBy("has_glowstone", has(Blocks.GLOWSTONE)).save(consumer);
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, SPINEL_LAMP.get()).define('#', CCItemTags.GEMS_SPINEL).define('G', Blocks.GLOWSTONE).pattern(" # ").pattern("#G#").pattern(" # ").unlockedBy("has_glowstone", has(Blocks.GLOWSTONE)).save(consumer);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, SPINEL_BRICK_SLAB.get(), SPINEL_BRICKS.get(), 2);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, SPINEL_BRICK_STAIRS.get(), SPINEL_BRICKS.get());
 		stonecutterRecipe(consumer, DECORATIONS, SPINEL_BRICK_WALL.get(), SPINEL_BRICKS.get());
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, SPINEL_PILLAR.get(), SPINEL_BRICKS.get());
+
+		ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, TURQUOISE_TILES.get(), 8).define('#', Blocks.STONE_BRICKS).define('S', CCItemTags.GEMS_TURQUOISE).pattern("###").pattern("#S#").pattern("###").unlockedBy("has_turquoise", has(CCItemTags.GEMS_TURQUOISE)).save(consumer);
+		generateRecipes(consumer, TURQUOISE_TILES_FAMILY);
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, TURQUOISE_PILLAR.get(), 2).define('#', TURQUOISE_TILES.get()).pattern("#").pattern("#").unlockedBy(getHasName(TURQUOISE_TILES.get()), has(TURQUOISE_TILES.get())).unlockedBy(getHasName(TURQUOISE_PILLAR.get()), has(TURQUOISE_PILLAR.get())).save(consumer);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, TURQUOISE_TILE_SLAB.get(), TURQUOISE_TILES.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, TURQUOISE_TILE_STAIRS.get(), TURQUOISE_TILES.get());
+		stonecutterRecipe(consumer, DECORATIONS, TURQUOISE_TILE_WALL.get(), TURQUOISE_TILES.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, TURQUOISE_PILLAR.get(), TURQUOISE_TILES.get());
+
+		platedBricksRecipe(consumer, IRON_BRICKS.get(), Tags.Items.INGOTS_IRON, "iron");
+		platedBricksRecipes(consumer, IRON_BRICKS_FAMILY);
+
+		platedBricksRecipe(consumer, TIN_BRICKS.get(), CCItemTags.INGOTS_TIN, "tin");
+		platedBricksRecipes(consumer, TIN_BRICKS_FAMILY);
+
+		platedBricksRecipe(consumer, GOLD_BRICKS.get(), Tags.Items.INGOTS_GOLD, "gold");
+		platedBricksRecipes(consumer, GOLD_BRICKS_FAMILY);
+
+		platedBricksRecipe(consumer, SILVER_BRICKS.get(), CCItemTags.INGOTS_SILVER, "silver");
+		platedBricksRecipes(consumer, SILVER_BRICKS_FAMILY);
+
+		platedBricksRecipe(consumer, COPPER_BRICKS.get(), Tags.Items.INGOTS_COPPER, "copper");
+		platedBricksRecipes(consumer, COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, EXPOSED_COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, WEATHERED_COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, OXIDIZED_COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, WAXED_COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, WAXED_EXPOSED_COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, WAXED_WEATHERED_COPPER_BRICKS_FAMILY);
+		platedBricksRecipes(consumer, WAXED_OXIDIZED_COPPER_BRICKS_FAMILY);
 
 		ShapelessRecipeBuilder.shapeless(BUILDING_BLOCKS, Blocks.CALCITE).requires(Blocks.DIORITE).requires(Items.AMETHYST_SHARD).unlockedBy("has_amethyst_shard", has(Items.AMETHYST_SHARD)).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, RecipeBuilder.getDefaultRecipeId(Blocks.CALCITE).getPath()));
 		generateRecipes(consumer, CALCITE_FAMILY);
@@ -215,17 +296,59 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_TUFF_STAIRS.get(), POLISHED_TUFF.get());
 
 		generateRecipes(consumer, SUGILITE_FAMILY);
-		ShapelessRecipeBuilder.shapeless(BUILDING_BLOCKS, SUGILITE.get()).requires(Blocks.GRANITE).requires(CCItems.SPINEL.get()).unlockedBy("has_spinel", has(CCItems.SPINEL.get())).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, RecipeBuilder.getDefaultRecipeId(SUGILITE.get()).getPath()));
+		ShapelessRecipeBuilder.shapeless(BUILDING_BLOCKS, SUGILITE.get()).requires(Blocks.GRANITE).requires(CCItemTags.GEMS_SPINEL).unlockedBy("has_spinel", has(CCItemTags.GEMS_SPINEL)).save(consumer);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, SUGILITE_SLAB.get(), SUGILITE.get(), 2);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, SUGILITE_STAIRS.get(), SUGILITE.get());
 		stonecutterRecipe(consumer, DECORATIONS, SUGILITE_WALL.get(), SUGILITE.get());
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, POLISHED_SUGILITE.get(), 4).define('#', SUGILITE.get()).pattern("##").pattern("##").unlockedBy("has_sugilite", has(SUGILITE.get())).save(consumer);
+		generateRecipes(consumer, POLISHED_SUGILITE_FAMILY);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_SUGILITE.get(), SUGILITE.get());
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_SUGILITE_SLAB.get(), SUGILITE.get(), 2);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_SUGILITE_STAIRS.get(), SUGILITE.get());
-		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, POLISHED_SUGILITE.get(), 4).define('#', SUGILITE.get()).pattern("##").pattern("##").unlockedBy("has_sugilite", has(SUGILITE.get())).save(consumer);
-		generateRecipes(consumer, POLISHED_SUGILITE_FAMILY);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_SUGILITE_SLAB.get(), POLISHED_SUGILITE.get(), 2);
 		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_SUGILITE_STAIRS.get(), POLISHED_SUGILITE.get());
+
+		ShapelessRecipeBuilder.shapeless(BUILDING_BLOCKS, CASSITERITE.get()).requires(Blocks.GRANITE).requires(CCItemTags.RAW_MATERIALS_TIN).unlockedBy("has_raw_tin", has(CCItemTags.RAW_MATERIALS_TIN)).save(consumer);
+		generateRecipes(consumer, CASSITERITE_FAMILY);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_SLAB.get(), CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_STAIRS.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, DECORATIONS, CASSITERITE_WALL.get(), CASSITERITE.get());
+
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, POLISHED_CASSITERITE.get(), 4).define('#', CASSITERITE.get()).pattern("##").pattern("##").unlockedBy("has_cassiterite", has(CASSITERITE.get())).save(consumer);
+		generateRecipes(consumer, POLISHED_CASSITERITE_FAMILY);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_CASSITERITE.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_CASSITERITE_SLAB.get(), CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_CASSITERITE_STAIRS.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_CASSITERITE_SLAB.get(), POLISHED_CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, POLISHED_CASSITERITE_STAIRS.get(), POLISHED_CASSITERITE.get());
+
+		SimpleCookingRecipeBuilder.smelting(Ingredient.of(CASSITERITE.get()), RecipeCategory.BUILDING_BLOCKS, SMOOTH_CASSITERITE.get(), 0.1F, 200).unlockedBy("has_cassiterite", has(CASSITERITE.get())).save(consumer);
+		ClayworksRecipeProvider.bakingRecipe(consumer, RecipeCategory.BUILDING_BLOCKS, CASSITERITE.get(), SMOOTH_CASSITERITE.get(), 0.1F, 100, CavernsAndChasms.MOD_ID);
+		generateRecipes(consumer, SMOOTH_CASSITERITE_FAMILY);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, SMOOTH_CASSITERITE_SLAB.get(), SMOOTH_CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, SMOOTH_CASSITERITE_STAIRS.get(), SMOOTH_CASSITERITE.get());
+
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, CASSITERITE_BRICKS.get(), 4).define('#', POLISHED_CASSITERITE.get()).pattern("##").pattern("##").unlockedBy("has_polished_cassiterite", has(POLISHED_CASSITERITE.get())).save(consumer);
+		generateRecipes(consumer, CASSITERITE_BRICKS_FAMILY);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICKS.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_SLAB.get(), CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_STAIRS.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_WALL.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CHISELED_CASSITERITE_BRICKS.get(), CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICKS.get(), POLISHED_CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_SLAB.get(), POLISHED_CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_STAIRS.get(), POLISHED_CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_WALL.get(), POLISHED_CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CHISELED_CASSITERITE_BRICKS.get(), POLISHED_CASSITERITE.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_SLAB.get(), CASSITERITE_BRICKS.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_STAIRS.get(), CASSITERITE_BRICKS.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_BRICK_WALL.get(), CASSITERITE_BRICKS.get());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CHISELED_CASSITERITE_BRICKS.get(), CASSITERITE_BRICKS.get());
+
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, CASSITERITE_PILLAR.get(), 2).define('#', CASSITERITE_BRICKS.get()).pattern("#").pattern("#").unlockedBy(getHasName(CASSITERITE_BRICKS.get()), has(CASSITERITE_BRICKS.get())).unlockedBy(getHasName(CASSITERITE_PILLAR.get()), has(CASSITERITE_PILLAR.get())).save(consumer);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_PILLAR.get(), CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_PILLAR.get(), POLISHED_CASSITERITE.get(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, CASSITERITE_PILLAR.get(), CASSITERITE_BRICKS.get(), 2);
 
 		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, DRIPSTONE_SHINGLES.get(), 4).define('#', Blocks.DRIPSTONE_BLOCK).pattern("##").pattern("##").unlockedBy("has_dripstone", has(Blocks.DRIPSTONE_BLOCK)).save(consumer);
 		generateRecipes(consumer, DRIPSTONE_SHINGLES_FAMILY);
@@ -366,10 +489,17 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		WoodworksRecipeProvider.baseRecipes(consumer, AZALEA_PLANKS.get(), AZALEA_SLAB.get(), AZALEA_BOARDS.get(), AZALEA_BOOKSHELF.get(), CHISELED_AZALEA_BOOKSHELF.get(), AZALEA_LADDER.get(), AZALEA_BEEHIVE.get(), AZALEA_CHEST.get(), TRAPPED_AZALEA_CHEST.get(), CavernsAndChasms.MOD_ID);
 		WoodworksRecipeProvider.sawmillRecipes(consumer, AZALEA_PLANKS_FAMILY, CCItemTags.AZALEA_LOGS, AZALEA_BOARDS.get(), AZALEA_LADDER.get(), CavernsAndChasms.MOD_ID);
 
+		conversionRecipe(consumer, Items.YELLOW_DYE, FALSE_HOPE.get(), "yellow_dye");
+		conversionRecipe(consumer, Items.GREEN_DYE, MOSCHATEL.get(), "green_dye");
+
 		trimRecipes(consumer, CCItems.EXILE_ARMOR_TRIM_SMITHING_TEMPLATE.get(), Blocks.NETHERRACK);
+		trimRecipes(consumer, CCItems.FORGER_ARMOR_TRIM_SMITHING_TEMPLATE.get(), Blocks.COAL_BLOCK);
+		trimRecipes(consumer, CCItems.IMMOLATE_ARMOR_TRIM_SMITHING_TEMPLATE.get(), Blocks.COAL_BLOCK);
+		trimRecipes(consumer, CCItems.RIM_ARMOR_TRIM_SMITHING_TEMPLATE.get(), Blocks.COAL_BLOCK);
 		SpecialRecipeBuilder.special(CCRecipeSerializers.FADED_TRIM_DUPING.get()).save(consumer, CavernsAndChasms.MOD_ID + ":faded_trim_smithing_template_duping");
 		SpecialRecipeBuilder.special(CCRecipeSerializers.EMISSIVE_TRIM_DUPING.get()).save(consumer, CavernsAndChasms.MOD_ID + ":emissive_trim_smithing_template_duping");
 
+		ccWaxRecipes(consumer);
 	}
 
 	public void stonecutterRecipe(Consumer<FinishedRecipe> consumer, RecipeCategory category, ItemLike output, ItemLike input, ItemLike inputName) {
@@ -384,8 +514,46 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		SmithingTransformRecipeBuilder.smithing(Ingredient.of(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), Ingredient.of(input), Ingredient.of(CCItemTags.INGOTS_NECROMIUM), category, output).unlocks("has_necromium_ingot", has(CCItemTags.INGOTS_NECROMIUM)).save(consumer, new ResourceLocation(this.getModID(), getItemName(output) + "_smithing"));
 	}
 
+	public static void copperHornRecipe(Consumer<FinishedRecipe> consumer, ResourceKey<Instrument> input, ImmutableList<RegistryObject<Instrument>> output) {
+		CompoundTag inputTag = new CompoundTag();
+		inputTag.putString("instrument", input.location().toString());
+
+		CompoundTag outputTag = new CompoundTag();
+		String harmonyID = output.get(0).getId().toString();
+		String melodyID = output.get(1).getId().toString();
+		String bassID = output.get(2).getId().toString();
+		outputTag.putString(CopperHornItem.HARMONY, harmonyID);
+		outputTag.putString(CopperHornItem.MELODY, melodyID);
+		outputTag.putString(CopperHornItem.BASS, bassID);
+
+		String recipeName = (harmonyID + melodyID + bassID).replace("caverns_and_chasms:", "").replace("copper_horn", "");
+		CCShapedRecipeBuilder.shaped(TOOLS, PartialNBTIngredient.of(CCItems.COPPER_HORN.get(), outputTag)).define('#', PartialNBTIngredient.of(Items.GOAT_HORN, inputTag)).define('C', Tags.Items.INGOTS_COPPER).pattern("C#C").pattern(" C ").unlockedBy("has_goat_horn", has(Items.GOAT_HORN)).save(consumer, new ResourceLocation(CavernsAndChasms.MOD_ID, recipeName + "copper_horn"));
+	}
+
+	public void platedBricksRecipe(Consumer<FinishedRecipe> consumer, ItemLike block, TagKey<Item> ingotTag, String hasName) {
+		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, block, 4).define('#', ingotTag).define('X', Blocks.DEEPSLATE).pattern("#X").pattern("X#").unlockedBy("has_" + hasName, has(ingotTag)).save(consumer);
+	}
+
+	public void platedBricksRecipes(Consumer<FinishedRecipe> consumer, BlockFamily family) {
+		generateRecipes(consumer, family);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, family.get(Variant.SLAB), family.getBaseBlock(), 2);
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, family.get(Variant.STAIRS), family.getBaseBlock());
+		stonecutterRecipe(consumer, DECORATIONS, family.get(Variant.WALL), family.getBaseBlock());
+		stonecutterRecipe(consumer, BUILDING_BLOCKS, family.get(Variant.CHISELED), family.getBaseBlock());
+	}
+
 	public static void mimingRecipe(Consumer<FinishedRecipe> consumer, RecipeCategory category, ItemLike input, ItemLike output) {
 		mimingRecipeBuilder(category, Ingredient.of(input), output, 1).unlockedBy(getHasName(input), has(input)).save(consumer);
+	}
+
+	protected void ccWaxRecipes(Consumer<FinishedRecipe> consumer) {
+		CCCompat.registerWaxables();
+		HoneycombItem.WAXABLES.get().forEach((base, waxed) -> {
+			if (BuiltInRegistries.BLOCK.getKey(waxed).getNamespace().equals(this.getModID()) && !(waxed instanceof ToolboxBlock)) {
+				RecipeCategory category = (waxed instanceof BaseRailBlock || waxed instanceof IronBarsBlock || waxed instanceof FloodlightBlock || waxed instanceof LightningRodBlock) ? DECORATIONS : waxed instanceof ButtonBlock ? REDSTONE : BUILDING_BLOCKS;
+				ShapelessRecipeBuilder.shapeless(category, waxed).requires(base).requires(Items.HONEYCOMB).group(getItemName(waxed)).unlockedBy(getHasName(base), has(base)).save(consumer, getModConversionRecipeName(waxed, Items.HONEYCOMB));
+			}
+		});
 	}
 
 	public static SingleItemRecipeBuilder mimingRecipeBuilder(RecipeCategory category, Ingredient input, ItemLike output, int count) {

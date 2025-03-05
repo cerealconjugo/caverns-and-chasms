@@ -1,13 +1,14 @@
 package com.teamabnormals.caverns_and_chasms.common.entity.monster;
 
 import com.teamabnormals.caverns_and_chasms.common.entity.ai.goal.PeeperSwellGoal;
-import com.teamabnormals.caverns_and_chasms.core.CCConfig;
+import com.teamabnormals.caverns_and_chasms.common.level.CustomSoundExplosion;
+import com.teamabnormals.caverns_and_chasms.common.network.S2CCustomSoundExplosionMessage;
+import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
 import com.teamabnormals.caverns_and_chasms.core.other.CCCriteriaTriggers;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCItems;
 import com.teamabnormals.caverns_and_chasms.core.registry.CCSoundEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,14 +22,17 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.Cat;
+import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.Level.ExplosionInteraction;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -48,6 +52,8 @@ public class Peeper extends Creeper {
 	protected void registerGoals() {
 		this.goalSelector.addGoal(0, new FloatGoal(this));
 		this.goalSelector.addGoal(1, new PeeperSwellGoal(this));
+		this.goalSelector.addGoal(3, new AvoidEntityGoal<>(this, Ocelot.class, 6.0F, 1.0D, 1.2D));
+		this.goalSelector.addGoal(3, new AvoidEntityGoal<>(this, Cat.class, 6.0F, 1.0D, 1.2D));
 		this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, false));
 		this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 0.8D));
 		this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -58,7 +64,12 @@ public class Peeper extends Creeper {
 
 	@Override
 	protected SoundEvent getHurtSound(DamageSource damageSourceIn) {
-		return CCSoundEvents.ENTITY_DEEPER_HURT.get();
+		return CCSoundEvents.PEEPER_HURT.get();
+	}
+
+	@Override
+	protected SoundEvent getDeathSound() {
+		return CCSoundEvents.PEEPER_DEATH.get();
 	}
 
 	public static AttributeSupplier.Builder createAttributes() {
@@ -66,12 +77,10 @@ public class Peeper extends Creeper {
 	}
 
 	@Override
-	protected SoundEvent getDeathSound() {
-		return CCSoundEvents.ENTITY_DEEPER_DEATH.get();
-	}
-
-	@Override
 	public void tick() {
+		int realSwell = this.swell;
+		int realOldSwell = this.oldSwell;
+
 		if (this.isAlive()) {
 			AttributeInstance speedAttribute = this.getAttribute(Attributes.MOVEMENT_SPEED);
 			if (speedAttribute.getModifier(FREEZE_MODIFIER_UUID) != null) {
@@ -93,30 +102,36 @@ public class Peeper extends Creeper {
 				speedAttribute.removeModifier(SPEED_UP_MODIFIER_UUID);
 			}
 
-			this.oldSwell = this.swell;
+			realOldSwell = realSwell;
 			if (this.isIgnited()) {
 				this.setSwellDir(1);
 			}
 
 			int i = this.getSwellDir();
-			if (i > 0 && this.swell == 0) {
-				this.playSound(SoundEvents.CREEPER_PRIMED, 1.0F, 0.5F);
+			if (i > 0 && realSwell == 0) {
+				this.playSound(CCSoundEvents.PEEPER_PRIMED.get(), 1.0F, 0.5F);
 				this.gameEvent(GameEvent.PRIME_FUSE);
 			}
 
-			this.swell += i;
-			if (this.swell < 0) {
-				this.swell = 0;
+			realSwell += 2 * i;
+			if (realSwell < 0) {
+				realSwell = 0;
 			}
 
-			if (this.swell >= this.maxSwell) {
-				this.swell = this.maxSwell;
+			if (realSwell >= this.maxSwell) {
+				realSwell = this.maxSwell;
 				this.explodeCreeper();
 			}
-		} else if (this.swell > 0) {
-			this.swell--;
+		} else if (realSwell > 0) {
+			realSwell--;
 		}
+
+		this.swell = -1;
+
 		super.tick();
+
+		this.swell = realSwell;
+		this.oldSwell = realOldSwell;
 	}
 
 	@Override
@@ -132,7 +147,11 @@ public class Peeper extends Creeper {
 		if (!this.level().isClientSide && this.isAlive()) {
 			float f = this.isPowered() ? 2.0F : 1.0F;
 			this.dead = true;
-			this.level().explode(this, this.getX(), this.getY(), this.getZ(), (float) this.explosionRadius * f, this.isOnFire(), CCConfig.COMMON.creepersDropAllBlocks.get() ? ExplosionInteraction.TNT : ExplosionInteraction.MOB);
+			CustomSoundExplosion explosion = new CustomSoundExplosion(this.level(), this, this.getX(), this.getY(0.0625D), this.getZ(), 4.0F, CCSoundEvents.PEEPER_EXPLODE.get());
+			if (ForgeEventFactory.onExplosionStart(this.level(), explosion)) return;
+			explosion.explode();
+			explosion.finalizeExplosion(true);
+			CavernsAndChasms.CHANNEL.send(PacketDistributor.DIMENSION.with(() -> this.level().dimension()), new S2CCustomSoundExplosionMessage((float) this.getX(), (float) this.getY(0.0625D), (float) this.getZ(), 4.0F, explosion.getToBlow(), CCSoundEvents.PEEPER_EXPLODE.get()));
 			this.discard();
 			this.spawnLingeringCloud();
 		}
@@ -168,5 +187,10 @@ public class Peeper extends Creeper {
 
 	protected ItemStack getSkull() {
 		return new ItemStack(CCItems.PEEPER_HEAD.get());
+	}
+
+	@Override
+	public boolean canDropMobsSkull() {
+		return this.isPowered();
 	}
 }

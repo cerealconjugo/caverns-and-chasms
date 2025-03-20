@@ -58,7 +58,7 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.block(BOUNCER);
 		this.hoopBlock(HOOP);
 		this.storageDuctBlock(STORAGE_DUCT);
-		this.rollerDoorBlock(ROLLER_DOOR, ROLLER_DOOR_BOTTOM, ROLLER_DOOR_HEADER, ROLLER_DOOR_HEADER_BOTTOM);
+		this.rollerDoorBlock(ROLLER_DOOR, ROLLER_DOOR_HEADER);
 
 		this.blockFamilyWithChiseled(IRON_BRICKS_FAMILY);
 		this.blockFamilyWithChiseled(TIN_BRICKS_FAMILY);
@@ -104,6 +104,9 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.block(ROTTEN_FLESH_BLOCK);
 		this.randomRotationBlock(ROCKY_DIRT);
 		this.flintBlock(FLINT_BLOCK);
+		this.coalBlock(COAL);
+		this.coalBlock(CHARCOAL);
+		this.charcoalBlock(CHARCOAL_BLOCK);
 
 		this.blockFamily(COBBLESTONE_BRICKS_FAMILY);
 		this.blockFamily(COBBLESTONE_TILES_FAMILY);
@@ -576,11 +579,9 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.simpleBlockItem(block, models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, "block/storage_duct_up_down")));
 	}
 
-	public void rollerDoorBlock(RegistryObject<Block> door, RegistryObject<Block> doorBottom, RegistryObject<Block> doorHeader, RegistryObject<Block> doorHeaderBottom) {
+	public void rollerDoorBlock(RegistryObject<Block> door, RegistryObject<Block> doorHeader) {
 		this.rollerDoorBlock(door);
-		this.rollerDoorBlock(doorBottom);
 		this.rollerDoorBlock(doorHeader);
-		this.rollerDoorBlock(doorHeaderBottom);
 		Block block = door.get();
 		this.simpleBlockItem(block, models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, name(block) + "_inventory")));
 	}
@@ -590,9 +591,12 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 		this.getVariantBuilder(block)
 				.forAllStatesExcept(state -> {
 					Direction direction = state.getValue(RollerDoorBlock.FACING);
+					AttachFace face = state.getValue(RollerDoorBlock.FACE);
+					String bottom = state.getValue(RollerDoorBlock.BOTTOM) ? "_bottom" : "";
 					return ConfiguredModel.builder()
-							.modelFile(models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, name(block) + "_" + state.getValue(RollerDoorBlock.OPENNESS))))
-							.rotationY(((int) direction.toYRot() + 180) % 360)
+							.modelFile(models().getExistingFile(new ResourceLocation(CavernsAndChasms.MOD_ID, name(block) + bottom + "_" + state.getValue(RollerDoorBlock.OPENNESS))))
+							.rotationX(face == AttachFace.CEILING ? 90 : face == AttachFace.FLOOR ? 270 : 0)
+							.rotationY(((int) direction.toYRot() + (face == AttachFace.FLOOR ? 0 : 180)) % 360)
 							.build();
 				}, BlockStateProperties.WATERLOGGED);
 	}
@@ -771,6 +775,55 @@ public class CCBlockStateProvider extends BlueprintBlockStateProvider {
 
 		this.getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.allRotations(state.getValue(FlintBlock.LIT) ? litModel : model, false));
 		this.blockItem(block);
+	}
+
+	public void charcoalBlock(RegistryObject<Block> registryObject) {
+		RotatedPillarBlock block = (RotatedPillarBlock) registryObject.get();
+
+		ModelFile vertical = models().cubeColumn(name(block), blockTexture(block), blockTexture(block).withSuffix("_top"));
+		ModelFile horizontal = models().cubeColumnHorizontal(name(block) + "_horizontal", blockTexture(block), blockTexture(block).withSuffix("_top"));
+		ModelFile verticalLit = models().cubeColumn(name(block) + "_lit", blockTexture(block).withSuffix("_lit"), blockTexture(block).withSuffix("_top_lit"));
+		ModelFile horizontalLit = models().cubeColumnHorizontal(name(block) + "_horizontal_lit", blockTexture(block).withSuffix("_lit"), blockTexture(block).withSuffix("_top_lit"));
+
+		this.getVariantBuilder(block)
+				.partialState().with(CharcoalBlock.LIT, false).with(RotatedPillarBlock.AXIS, Axis.Y).modelForState().modelFile(vertical).addModel()
+				.partialState().with(CharcoalBlock.LIT, false).with(RotatedPillarBlock.AXIS, Axis.Z).modelForState().modelFile(horizontal).rotationX(90).addModel()
+				.partialState().with(CharcoalBlock.LIT, false).with(RotatedPillarBlock.AXIS, Axis.X).modelForState().modelFile(horizontal).rotationX(90).rotationY(90).addModel()
+				.partialState().with(CharcoalBlock.LIT, true).with(RotatedPillarBlock.AXIS, Axis.Y).modelForState().modelFile(verticalLit).addModel()
+				.partialState().with(CharcoalBlock.LIT, true).with(RotatedPillarBlock.AXIS, Axis.Z).modelForState().modelFile(horizontalLit).rotationX(90).addModel()
+				.partialState().with(CharcoalBlock.LIT, true).with(RotatedPillarBlock.AXIS, Axis.X).modelForState().modelFile(horizontalLit).rotationX(90).rotationY(90).addModel();
+
+		this.blockItem(registryObject);
+	}
+
+	public void coalBlock(RegistryObject<Block> registryObject) {
+		Block block = registryObject.get();
+
+		this.getVariantBuilder(block).forAllStatesExcept(state -> {
+			String count = switch (state.getValue(CoalBlock.COAL)) {
+				case 1 -> "_one";
+				case 2 -> "_two";
+				case 3 -> "_three";
+				default -> "_four";
+			};
+
+			boolean isLit = state.getValue(CoalBlock.LIT);
+			String lit = isLit ? "_lit" : "";
+			String name = name(block) + count + lit;
+			BlockModelBuilder model = models().withExistingParent(name, CavernsAndChasms.location("block/template_" + name))
+					.texture("coal", blockTexture(block).withSuffix(lit));
+			if (isLit) {
+				model.texture("fire", blockTexture(block).withSuffix("_fire"));
+			}
+			return ConfiguredModel.builder()
+					.modelFile(model).nextModel()
+					.modelFile(model).rotationY(90).nextModel()
+					.modelFile(model).rotationY(180).nextModel()
+					.modelFile(model).rotationY(270)
+					.build();
+		}, CoalBlock.WATERLOGGED);
+
+		this.generatedItem(block, new ResourceLocation("item/" + registryObject.getId().getPath()));
 	}
 
 	public void baseBlockVariants(Block block, RegistryObject<Block> stairs, RegistryObject<Block> slab, RegistryObject<Block> wall) {

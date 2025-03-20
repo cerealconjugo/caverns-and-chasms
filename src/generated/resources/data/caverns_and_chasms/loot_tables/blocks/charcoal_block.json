@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "caverns_and_chasms:roller_door"
+          "name": "caverns_and_chasms:charcoal_block"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "caverns_and_chasms:blocks/roller_door_bottom"
+  "random_sequence": "caverns_and_chasms:blocks/charcoal_block"
 }

@@ -2,9 +2,9 @@ package com.teamabnormals.caverns_and_chasms.core.other;
 
 import com.teamabnormals.blueprint.common.world.storage.tracking.IDataManager;
 import com.teamabnormals.blueprint.core.events.FallingBlockEvent.FallingBlockTickEvent;
-import com.teamabnormals.blueprint.core.other.tags.BlueprintEntityTypeTags;
 import com.teamabnormals.blueprint.core.util.NetworkUtil;
 import com.teamabnormals.caverns_and_chasms.common.block.BrazierBlock;
+import com.teamabnormals.caverns_and_chasms.common.block.CoalBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.FlintBlock;
 import com.teamabnormals.caverns_and_chasms.common.entity.ControllableGolem;
 import com.teamabnormals.caverns_and_chasms.common.entity.ai.goal.FollowTuningForkGoal;
@@ -37,7 +37,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -52,7 +51,6 @@ import net.minecraft.world.entity.ai.goal.target.NonTameRandomTargetGoal;
 import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Ocelot;
-import net.minecraft.world.entity.animal.goat.Goat;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.SkeletonHorse;
 import net.minecraft.world.entity.item.FallingBlockEntity;
@@ -67,6 +65,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.ArmorItem.Type;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
@@ -86,21 +85,21 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingVisibilityEvent;
 import net.minecraftforge.event.entity.player.AnvilRepairEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-@Mod.EventBusSubscriber(modid = CavernsAndChasms.MOD_ID)
+@EventBusSubscriber(modid = CavernsAndChasms.MOD_ID)
 public class CCEvents {
 
 	@SubscribeEvent
@@ -124,35 +123,6 @@ public class CCEvents {
 			ocelot.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(ocelot, Rat.class, false));
 		} else if (entity instanceof WanderingTrader trader) {
 			trader.goalSelector.addGoal(1, new AvoidEntityGoal<>(trader, Rat.class, 5.0F, 0.5D, 0.5D));
-		}
-	}
-
-	@SubscribeEvent
-	public static void rightClickEntity(PlayerInteractEvent.EntityInteractSpecific event) {
-		Player player = event.getEntity();
-		Entity target = event.getTarget();
-		ItemStack stack = player.getItemInHand(event.getHand());
-		Level level = event.getLevel();
-		InteractionHand hand = event.getHand();
-		if (target instanceof LivingEntity entity && entity.getType().is(BlueprintEntityTypeTags.MILKABLE)) {
-			if (!entity.isBaby() && (stack.getItem() == CCItems.GOLDEN_MILK_BUCKET.get() || stack.getItem() == CCItems.GOLDEN_BUCKET.get())) {
-				CompoundTag tag = stack.getOrCreateTag();
-				ItemStack milkBucket = ItemUtils.createFilledResult(stack.copy(), player, CCItems.GOLDEN_MILK_BUCKET.get().getDefaultInstance());
-				boolean fullBucket = false;
-				if (stack.getItem() == CCItems.GOLDEN_MILK_BUCKET.get()) {
-					fullBucket = tag.getInt("FluidLevel") >= 2;
-					if (!fullBucket && !player.isCreative()) {
-						milkBucket.getOrCreateTag().putInt("FluidLevel", tag.getInt("FluidLevel") + 1);
-					}
-				}
-				if (!fullBucket) {
-					player.playSound(entity instanceof Goat goat ? goat.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_MILK : SoundEvents.GOAT_MILK : SoundEvents.COW_MILK, 1.0F, 1.0F);
-					target.gameEvent(GameEvent.ENTITY_INTERACT);
-					player.setItemInHand(hand, milkBucket);
-					event.setCancellationResult(InteractionResult.sidedSuccess(level.isClientSide()));
-					event.setCanceled(true);
-				}
-			}
 		}
 	}
 
@@ -206,6 +176,46 @@ public class CCEvents {
 		BlockState state = level.getBlockState(pos);
 		Direction face = event.getFace();
 		RandomSource random = level.getRandom();
+
+		if (stack.is(Items.COAL) || stack.is(Items.CHARCOAL)) {
+			UseOnContext context = new UseOnContext(level, player, event.getHand(), stack, event.getHitVec());
+			Collection<RegistryObject<Item>> items = CavernsAndChasms.REGISTRY_HELPER.getItemSubHelper().getDeferredRegister().getEntries();
+			for (RegistryObject<Item> reg : items) {
+				if (reg.get() instanceof BlockItem blockItem && stack.is(blockItem.getBlock().asItem())) {
+					InteractionResult result = reg.get().useOn(context);
+					if (result.consumesAction()) {
+						event.setCanceled(true);
+						event.setCancellationResult(InteractionResult.sidedSuccess(level.isClientSide()));
+					}
+					break;
+				}
+			}
+		}
+
+		boolean fireCharge = stack.getItem() instanceof FireChargeItem;
+		boolean flintAndSteel = stack.getItem() instanceof FlintAndSteelItem;
+		if (fireCharge || flintAndSteel) {
+			boolean valid = state.getBlock() instanceof CoalBlock && !state.getValue(CoalBlock.LIT) && !state.getValue(CoalBlock.WATERLOGGED);
+			if (valid) {
+				BlockState returnState = state.setValue(CoalBlock.LIT, true);
+				if (flintAndSteel) {
+					level.playSound(player, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 0.8F);
+					level.setBlock(pos, returnState, 11);
+					level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+					stack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(event.getHand()));
+				} else {
+					level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 1.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F);
+					level.setBlockAndUpdate(pos, returnState);
+					level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+					if (!player.getAbilities().instabuild)
+						stack.shrink(1);
+				}
+
+				event.setCancellationResult(InteractionResult.sidedSuccess(level.isClientSide()));
+				event.setCanceled(true);
+			}
+		}
+
 
 		if (state.getBlock() instanceof BrazierBlock && face == Direction.UP) {
 			if (stack.canPerformAction(ToolActions.SHOVEL_FLATTEN) && state.getValue(BrazierBlock.LIT)) {

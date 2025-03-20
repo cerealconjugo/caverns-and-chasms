@@ -2,6 +2,7 @@ package com.teamabnormals.caverns_and_chasms.core.data.server;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.teamabnormals.caverns_and_chasms.common.block.CoalBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.TmtBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.ToolboxBlock;
 import com.teamabnormals.caverns_and_chasms.common.item.GoldenBucketItem;
@@ -34,6 +35,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SeaPickleBlock;
 import net.minecraft.world.level.storage.loot.*;
 import net.minecraft.world.level.storage.loot.LootContext.EntityTarget;
 import net.minecraft.world.level.storage.loot.entries.*;
@@ -45,6 +47,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -102,6 +105,19 @@ public class CCLootTableProvider extends LootTableProvider {
 					LootItem.lootTableItem(Items.FLINT).when(BonusLevelTableCondition.bonusLevelFlatChance(Enchantments.BLOCK_FORTUNE, 0.1F, 0.14285715F, 0.25F, 1.0F)).otherwise(LootItem.lootTableItem(Items.DIRT)).when(HAS_SHOVEL),
 					applyExplosionCondition(ROCKY_DIRT.get(), LootItem.lootTableItem(ROCKY_DIRT.get()))))));
 			this.add(FLINT_BLOCK.get(), (block -> createSilkTouchDispatchTable(block, applyExplosionDecay(block, LootItem.lootTableItem(Items.FLINT)).apply(SetItemCountFunction.setCount(UniformGenerator.between(2.0F, 3.0F))))));
+			this.dropSelf(CHARCOAL_BLOCK.get());
+			this.add(COAL.get(), block -> {
+				return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(this.applyExplosionDecay(Items.COAL, LootItem.lootTableItem(block).apply(List.of(2, 3, 4), (i) -> {
+					return SetItemCountFunction.setCount(ConstantValue.exactly((float) i.intValue())).when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(block).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(CoalBlock.COAL, i)));
+				}))));
+			});
+			this.add(CHARCOAL.get(), block -> {
+				return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(this.applyExplosionDecay(Items.CHARCOAL, LootItem.lootTableItem(block).apply(List.of(2, 3, 4), (i) -> {
+					return SetItemCountFunction.setCount(ConstantValue.exactly((float) i.intValue())).when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(block).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(CoalBlock.COAL, i)));
+				}))));
+			});
+
+
 			this.dropSelf(ROTTEN_FLESH_BLOCK.get());
 			this.dropSelf(NECROMIUM_BLOCK.get());
 			this.dropSelf(DEEPER_HEAD.get());
@@ -132,9 +148,7 @@ public class CCLootTableProvider extends LootTableProvider {
 			this.add(STORAGE_DUCT.get(), this::createNameableBlockEntityTable);
 
 			this.dropSelf(ROLLER_DOOR.get());
-			this.dropOther(ROLLER_DOOR_BOTTOM.get(), ROLLER_DOOR.get());
 			this.dropOther(ROLLER_DOOR_HEADER.get(), ROLLER_DOOR.get());
-			this.dropOther(ROLLER_DOOR_HEADER_BOTTOM.get(), ROLLER_DOOR.get());
 
 			this.dropSelf(COPPER_RAIL.get());
 			this.dropSelf(EXPOSED_COPPER_RAIL.get());

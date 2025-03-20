@@ -134,6 +134,7 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		ShapedRecipeBuilder.shaped(DECORATIONS, COPPER_BARS.get(), 16).define('#', Tags.Items.INGOTS_COPPER).pattern("###").pattern("###").unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
 		ShapelessRecipeBuilder.shapeless(REDSTONE, COPPER_BUTTON.get()).requires(ItemTags.WOODEN_BUTTONS).requires(Tags.Items.INGOTS_COPPER).unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER)).save(consumer);
 
+		storageRecipes(consumer, MISC, Items.CHARCOAL, BUILDING_BLOCKS, CHARCOAL_BLOCK.get());
 		storageRecipes(consumer, MISC, CCItems.SPINEL.get(), BUILDING_BLOCKS, SPINEL_BLOCK.get());
 		storageRecipes(consumer, MISC, CCItems.RAW_SILVER.get(), BUILDING_BLOCKS, RAW_SILVER_BLOCK.get());
 		storageRecipes(consumer, MISC, CCItems.RAW_TIN.get(), BUILDING_BLOCKS, RAW_TIN_BLOCK.get());
@@ -147,7 +148,7 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		storageRecipesWithCustomPacking(consumer, MISC, CCItems.COPPER_NUGGET.get(), MISC, Items.COPPER_INGOT, "copper_ingot_from_nuggets", "copper_ingot");
 
 		oreRecipes(consumer, SILVER_SMELTABLES, MISC, CCItems.SILVER_INGOT.get(), 1.0F, 200, 1.0F, 100, "silver_ingot");
-		oreRecipes(consumer, TIN_SMELTABLES, MISC, CCItems.TIN_INGOT.get(), 0.0F, 200, 0.0F, 100, "tin_ingot");
+		oreRecipes(consumer, TIN_SMELTABLES, MISC, CCItems.TIN_INGOT.get(), 0.7F, 200, 0.7F, 100, "tin_ingot");
 		oreRecipes(consumer, SPINEL_SMELTABLES, MISC, CCItems.SPINEL.get(), 0.2F, 200, 0.2F, 100, "spinel");
 		oreRecipes(consumer, TURQUOISE_SMELTABLES, MISC, CCItems.TURQUOISE.get(), 1.0F, 200, 1.0F, 100, "turquoise");
 
@@ -182,7 +183,7 @@ public class CCRecipeProvider extends BlueprintRecipeProvider {
 		ShapedRecipeBuilder.shaped(DECORATIONS, STORAGE_DUCT.get()).define('I', CCItemTags.INGOTS_TIN).define('B', CCItemTags.STORAGE_BLOCKS_TIN).pattern("I I").pattern("B B").pattern("I I").unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
 		ShapedRecipeBuilder.shaped(BUILDING_BLOCKS, FLOAT_GLASS.get(), 2).define('G', Blocks.GLASS).define('S', Items.AMETHYST_SHARD).define('T', CCItemTags.INGOTS_TIN).pattern(" T ").pattern("SGS").pattern(" T ").unlockedBy("has_amethyst_shard", has(Items.AMETHYST_SHARD)).unlockedBy("has_tin", has(CCItemTags.INGOTS_TIN)).save(consumer);
 		ShapedRecipeBuilder.shaped(DECORATIONS, FLOAT_GLASS_PANE.get(), 16).define('#', FLOAT_GLASS.get()).pattern("###").pattern("###").unlockedBy("has_float_glass", has(FLOAT_GLASS.get())).save(consumer);
-		ShapedRecipeBuilder.shaped(REDSTONE, ROLLER_DOOR.get()).define('T', CCItemTags.INGOTS_TIN).pattern("TT").pattern("TT").unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
+		ShapedRecipeBuilder.shaped(REDSTONE, ROLLER_DOOR.get(), 2).define('T', CCItemTags.INGOTS_TIN).pattern("TT").pattern("TT").unlockedBy("has_tin_ingot", has(CCItemTags.INGOTS_TIN)).save(consumer);
 
 		ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, RESISTOR.get()).define('#', Blocks.REDSTONE_TORCH).define('X', Items.REDSTONE).define('I', CCItemTags.INGOTS_TIN).pattern("#X#").pattern("III").unlockedBy("has_redstone_torch", has(Blocks.REDSTONE_TORCH)).save(consumer);
 		ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, REFRACTOR.get()).define('#', Blocks.REDSTONE_TORCH).define('X', Items.AMETHYST_BLOCK).define('I', CCItemTags.INGOTS_TIN).pattern(" # ").pattern("#X#").pattern("III").unlockedBy("has_amethyst", has(Items.AMETHYST_BLOCK)).save(consumer);

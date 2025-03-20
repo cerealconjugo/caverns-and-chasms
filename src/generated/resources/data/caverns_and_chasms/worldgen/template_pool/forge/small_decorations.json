@@ -2,6 +2,12 @@
   "elements": [
     {
       "element": {
+        "element_type": "minecraft:empty_pool_element"
+      },
+      "weight": 17
+    },
+    {
+      "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "caverns_and_chasms:forge/small_decorations/cauldron_1",
         "processors": {
@@ -36,7 +42,7 @@
     {
       "element": {
         "element_type": "minecraft:single_pool_element",
-        "location": "caverns_and_chasms:forge/small_decorations/cauldron_1",
+        "location": "caverns_and_chasms:forge/small_decorations/damaged_anvil_1",
         "processors": {
           "processors": []
         },
@@ -197,12 +203,6 @@
         "projection": "rigid"
       },
       "weight": 1
-    },
-    {
-      "element": {
-        "element_type": "minecraft:empty_pool_element"
-      },
-      "weight": 17
     }
   ],
   "fallback": "minecraft:empty"

@@ -23,9 +23,7 @@ import com.teamabnormals.caverns_and_chasms.common.block.cupric.CupricFireBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.cupric.CupricTorchBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.cupric.CupricWallTorchBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.roller_door.RollerDoorBlock;
-import com.teamabnormals.caverns_and_chasms.common.block.roller_door.RollerDoorBottomBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.roller_door.RollerDoorHeaderBlock;
-import com.teamabnormals.caverns_and_chasms.common.block.roller_door.RollerDoorHeaderBottomBlock;
 import com.teamabnormals.caverns_and_chasms.common.block.turquoise.*;
 import com.teamabnormals.caverns_and_chasms.common.block.weathering.*;
 import com.teamabnormals.caverns_and_chasms.core.CavernsAndChasms;
@@ -49,6 +47,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockBehaviour.OffsetType;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
@@ -100,9 +99,7 @@ public class CCBlocks {
 	public static final RegistryObject<Block> STORAGE_DUCT = HELPER.createBlock("storage_duct", () -> new StorageDuctBlock(CCProperties.STORAGE_DUCT));
 
 	public static final RegistryObject<Block> ROLLER_DOOR = HELPER.createBlock("roller_door", () -> new RollerDoorBlock(CCProperties.ROLLER_DOOR));
-	public static final RegistryObject<Block> ROLLER_DOOR_BOTTOM = HELPER.createBlockNoItem("roller_door_bottom", () -> new RollerDoorBottomBlock(CCProperties.ROLLER_DOOR));
 	public static final RegistryObject<Block> ROLLER_DOOR_HEADER = HELPER.createBlockNoItem("roller_door_header", () -> new RollerDoorHeaderBlock(CCProperties.ROLLER_DOOR));
-	public static final RegistryObject<Block> ROLLER_DOOR_HEADER_BOTTOM = HELPER.createBlockNoItem("roller_door_header_bottom", () -> new RollerDoorHeaderBottomBlock(CCProperties.ROLLER_DOOR));
 
 	public static final RegistryObject<Block> COPPER_RAIL = HELPER.createBlock("copper_rail", () -> new WeatheringCopperRailBlock(WeatherState.UNAFFECTED, CCProperties.COPPER_RAIL));
 	public static final RegistryObject<Block> EXPOSED_COPPER_RAIL = HELPER.createBlock("exposed_copper_rail", () -> new WeatheringCopperRailBlock(WeatherState.EXPOSED, CCProperties.COPPER_RAIL));
@@ -447,6 +444,10 @@ public class CCBlocks {
 
 	public static final RegistryObject<Block> FLINT_BLOCK = HELPER.createBlock("flint_block", () -> new FlintBlock(BlockBehaviour.Properties.copy(Blocks.GRAVEL)));
 
+	public static final RegistryObject<Block> COAL = HELPER.createBlock("coal", () -> new CoalBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).strength(5.0F, 6.0F).requiresCorrectToolForDrops().lightLevel(state -> !state.getValue(CoalBlock.LIT) ? 0 : 9 + state.getValue(CoalBlock.COAL)).noOcclusion().pushReaction(PushReaction.DESTROY)));
+	public static final RegistryObject<Block> CHARCOAL = HELPER.createBlock("charcoal", () -> new CoalBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).strength(5.0F, 6.0F).requiresCorrectToolForDrops().lightLevel(state -> !state.getValue(CoalBlock.LIT) ? 0 : 7 + state.getValue(CoalBlock.COAL)).noOcclusion().pushReaction(PushReaction.DESTROY)));
+	public static final RegistryObject<Block> CHARCOAL_BLOCK = HELPER.createBlock("charcoal_block", () -> new CharcoalBlock(BlockBehaviour.Properties.copy(Blocks.COAL_BLOCK).lightLevel(state -> state.getValue(CharcoalBlock.LIT) ? 15 : 0).hasPostProcess((state, level, pos) -> state.getValue(CharcoalBlock.LIT)).emissiveRendering((state, level, pos) -> state.getValue(CharcoalBlock.LIT))));
+
 	public static void setupTabEditors() {
 		CreativeModeTabContentsPopulator.mod(CavernsAndChasms.MOD_ID)
 				.tab(BUILDING_BLOCKS)
@@ -479,6 +480,7 @@ public class CCBlocks {
 				.addItemsBefore(of(Blocks.DEEPSLATE_TILES), () -> Blocks.CHISELED_DEEPSLATE)
 				.addItemsBefore(of(Blocks.BASALT), SANGUINE_BLOCK, SANGUINE_TILES, SANGUINE_TILE_STAIRS, SANGUINE_TILE_SLAB, SANGUINE_TILE_WALL, FORTIFIED_SANGUINE_TILES, FORTIFIED_SANGUINE_TILE_STAIRS, FORTIFIED_SANGUINE_TILE_SLAB, FORTIFIED_SANGUINE_TILE_WALL)
 				.addItemsAfter(of(Blocks.AMETHYST_BLOCK), AMETHYST_BLOCK, CUT_AMETHYST, CUT_AMETHYST_BRICKS, CUT_AMETHYST_BRICK_STAIRS, CUT_AMETHYST_BRICK_SLAB, CUT_AMETHYST_BRICK_WALL)
+				.addItemsAfter(of(Blocks.COAL_BLOCK), CHARCOAL_BLOCK)
 				.addItemsAfter(of(Blocks.IRON_BLOCK), IRON_BRICKS, IRON_BRICK_STAIRS, IRON_BRICK_SLAB, IRON_BRICK_WALL, CHISELED_IRON_BRICKS)
 				.addItemsAfter(of(Blocks.GOLD_BLOCK), GOLD_BRICKS, GOLD_BRICK_STAIRS, GOLD_BRICK_SLAB, GOLD_BRICK_WALL, CHISELED_GOLD_BRICKS, GOLDEN_BARS)
 				.addItemsBefore(of(Blocks.GOLD_BLOCK), TIN_BLOCK, TIN_BRICKS, TIN_BRICK_STAIRS, TIN_BRICK_SLAB, TIN_BRICK_WALL, CHISELED_TIN_BRICKS, TIN_BARS, ROLLER_DOOR, HOLD_PLATE, HOLD_BUTTON)
@@ -633,7 +635,7 @@ public class CCBlocks {
 		public static final BlockBehaviour.Properties DIMMER = BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).requiresCorrectToolForDrops().strength(3.5F).sound(SoundType.LANTERN).pushReaction(PushReaction.DESTROY).lightLevel((state) -> state.getValue(AbstractDimmerBlock.POWER));
 		public static final BlockBehaviour.Properties HOOP = BlockBehaviour.Properties.of().requiresCorrectToolForDrops().strength(3.5F).sound(SoundType.METAL);
 		public static final BlockBehaviour.Properties STORAGE_DUCT = BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).requiresCorrectToolForDrops().strength(5.0F).sound(SoundType.METAL);
-		public static final BlockBehaviour.Properties ROLLER_DOOR = BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).requiresCorrectToolForDrops().strength(5.0F).sound(SoundType.METAL);
+		public static final BlockBehaviour.Properties ROLLER_DOOR = BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).requiresCorrectToolForDrops().strength(5.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK).forceSolidOn();
 
 		public static final BlockBehaviour.Properties ORE = BlockBehaviour.Properties.of().requiresCorrectToolForDrops().strength(3.0F, 3.0F);
 		public static final BlockBehaviour.Properties DEEPSLATE_ORE = BlockBehaviour.Properties.of().requiresCorrectToolForDrops().mapColor(MapColor.DEEPSLATE).strength(4.5F, 3.0F).sound(SoundType.DEEPSLATE);
